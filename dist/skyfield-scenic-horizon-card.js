@@ -1,0 +1,585 @@
+/******************************************************************************
+Copyright (c) Microsoft Corporation.
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
+***************************************************************************** */
+/* global Reflect, Promise, SuppressedError, Symbol, Iterator */
+
+
+function __decorate(decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+}
+
+typeof SuppressedError === "function" ? SuppressedError : function (error, suppressed, message) {
+    var e = new Error(message);
+    return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
+};
+
+/**
+ * @license
+ * Copyright 2019 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+const t$3=globalThis,e$3=t$3.ShadowRoot&&(void 0===t$3.ShadyCSS||t$3.ShadyCSS.nativeShadow)&&"adoptedStyleSheets"in Document.prototype&&"replace"in CSSStyleSheet.prototype,s$2=Symbol(),o$5=new WeakMap;let n$4 = class n{constructor(t,e,o){if(this._$cssResult$=true,o!==s$2)throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");this.cssText=t,this.t=e;}get styleSheet(){let t=this.o;const s=this.t;if(e$3&&void 0===t){const e=void 0!==s&&1===s.length;e&&(t=o$5.get(s)),void 0===t&&((this.o=t=new CSSStyleSheet).replaceSync(this.cssText),e&&o$5.set(s,t));}return t}toString(){return this.cssText}};const r$4=t=>new n$4("string"==typeof t?t:t+"",void 0,s$2),i$5=(t,...e)=>{const o=1===t.length?t[0]:e.reduce((e,s,o)=>e+(t=>{if(true===t._$cssResult$)return t.cssText;if("number"==typeof t)return t;throw Error("Value passed to 'css' function must be a 'css' function result: "+t+". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.")})(s)+t[o+1],t[0]);return new n$4(o,t,s$2)},S$1=(s,o)=>{if(e$3)s.adoptedStyleSheets=o.map(t=>t instanceof CSSStyleSheet?t:t.styleSheet);else for(const e of o){const o=document.createElement("style"),n=t$3.litNonce;void 0!==n&&o.setAttribute("nonce",n),o.textContent=e.cssText,s.appendChild(o);}},c$2=e$3?t=>t:t=>t instanceof CSSStyleSheet?(t=>{let e="";for(const s of t.cssRules)e+=s.cssText;return r$4(e)})(t):t;
+
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */const{is:i$4,defineProperty:e$2,getOwnPropertyDescriptor:h$1,getOwnPropertyNames:r$3,getOwnPropertySymbols:o$4,getPrototypeOf:n$3}=Object,a$1=globalThis,c$1=a$1.trustedTypes,l$1=c$1?c$1.emptyScript:"",p$1=a$1.reactiveElementPolyfillSupport,d$1=(t,s)=>t,u$1={toAttribute(t,s){switch(s){case Boolean:t=t?l$1:null;break;case Object:case Array:t=null==t?t:JSON.stringify(t);}return t},fromAttribute(t,s){let i=t;switch(s){case Boolean:i=null!==t;break;case Number:i=null===t?null:Number(t);break;case Object:case Array:try{i=JSON.parse(t);}catch(t){i=null;}}return i}},f$1=(t,s)=>!i$4(t,s),b$1={attribute:true,type:String,converter:u$1,reflect:false,useDefault:false,hasChanged:f$1};Symbol.metadata??=Symbol("metadata"),a$1.litPropertyMetadata??=new WeakMap;let y$1 = class y extends HTMLElement{static addInitializer(t){this._$Ei(),(this.l??=[]).push(t);}static get observedAttributes(){return this.finalize(),this._$Eh&&[...this._$Eh.keys()]}static createProperty(t,s=b$1){if(s.state&&(s.attribute=false),this._$Ei(),this.prototype.hasOwnProperty(t)&&((s=Object.create(s)).wrapped=true),this.elementProperties.set(t,s),!s.noAccessor){const i=Symbol(),h=this.getPropertyDescriptor(t,i,s);void 0!==h&&e$2(this.prototype,t,h);}}static getPropertyDescriptor(t,s,i){const{get:e,set:r}=h$1(this.prototype,t)??{get(){return this[s]},set(t){this[s]=t;}};return {get:e,set(s){const h=e?.call(this);r?.call(this,s),this.requestUpdate(t,h,i);},configurable:true,enumerable:true}}static getPropertyOptions(t){return this.elementProperties.get(t)??b$1}static _$Ei(){if(this.hasOwnProperty(d$1("elementProperties")))return;const t=n$3(this);t.finalize(),void 0!==t.l&&(this.l=[...t.l]),this.elementProperties=new Map(t.elementProperties);}static finalize(){if(this.hasOwnProperty(d$1("finalized")))return;if(this.finalized=true,this._$Ei(),this.hasOwnProperty(d$1("properties"))){const t=this.properties,s=[...r$3(t),...o$4(t)];for(const i of s)this.createProperty(i,t[i]);}const t=this[Symbol.metadata];if(null!==t){const s=litPropertyMetadata.get(t);if(void 0!==s)for(const[t,i]of s)this.elementProperties.set(t,i);}this._$Eh=new Map;for(const[t,s]of this.elementProperties){const i=this._$Eu(t,s);void 0!==i&&this._$Eh.set(i,t);}this.elementStyles=this.finalizeStyles(this.styles);}static finalizeStyles(s){const i=[];if(Array.isArray(s)){const e=new Set(s.flat(1/0).reverse());for(const s of e)i.unshift(c$2(s));}else void 0!==s&&i.push(c$2(s));return i}static _$Eu(t,s){const i=s.attribute;return  false===i?void 0:"string"==typeof i?i:"string"==typeof t?t.toLowerCase():void 0}constructor(){super(),this._$Ep=void 0,this.isUpdatePending=false,this.hasUpdated=false,this._$Em=null,this._$Ev();}_$Ev(){this._$ES=new Promise(t=>this.enableUpdating=t),this._$AL=new Map,this._$E_(),this.requestUpdate(),this.constructor.l?.forEach(t=>t(this));}addController(t){(this._$EO??=new Set).add(t),void 0!==this.renderRoot&&this.isConnected&&t.hostConnected?.();}removeController(t){this._$EO?.delete(t);}_$E_(){const t=new Map,s=this.constructor.elementProperties;for(const i of s.keys())this.hasOwnProperty(i)&&(t.set(i,this[i]),delete this[i]);t.size>0&&(this._$Ep=t);}createRenderRoot(){const t=this.shadowRoot??this.attachShadow(this.constructor.shadowRootOptions);return S$1(t,this.constructor.elementStyles),t}connectedCallback(){this.renderRoot??=this.createRenderRoot(),this.enableUpdating(true),this._$EO?.forEach(t=>t.hostConnected?.());}enableUpdating(t){}disconnectedCallback(){this._$EO?.forEach(t=>t.hostDisconnected?.());}attributeChangedCallback(t,s,i){this._$AK(t,i);}_$ET(t,s){const i=this.constructor.elementProperties.get(t),e=this.constructor._$Eu(t,i);if(void 0!==e&&true===i.reflect){const h=(void 0!==i.converter?.toAttribute?i.converter:u$1).toAttribute(s,i.type);this._$Em=t,null==h?this.removeAttribute(e):this.setAttribute(e,h),this._$Em=null;}}_$AK(t,s){const i=this.constructor,e=i._$Eh.get(t);if(void 0!==e&&this._$Em!==e){const t=i.getPropertyOptions(e),h="function"==typeof t.converter?{fromAttribute:t.converter}:void 0!==t.converter?.fromAttribute?t.converter:u$1;this._$Em=e;const r=h.fromAttribute(s,t.type);this[e]=r??this._$Ej?.get(e)??r,this._$Em=null;}}requestUpdate(t,s,i,e=false,h){if(void 0!==t){const r=this.constructor;if(false===e&&(h=this[t]),i??=r.getPropertyOptions(t),!((i.hasChanged??f$1)(h,s)||i.useDefault&&i.reflect&&h===this._$Ej?.get(t)&&!this.hasAttribute(r._$Eu(t,i))))return;this.C(t,s,i);} false===this.isUpdatePending&&(this._$ES=this._$EP());}C(t,s,{useDefault:i,reflect:e,wrapped:h},r){i&&!(this._$Ej??=new Map).has(t)&&(this._$Ej.set(t,r??s??this[t]),true!==h||void 0!==r)||(this._$AL.has(t)||(this.hasUpdated||i||(s=void 0),this._$AL.set(t,s)),true===e&&this._$Em!==t&&(this._$Eq??=new Set).add(t));}async _$EP(){this.isUpdatePending=true;try{await this._$ES;}catch(t){Promise.reject(t);}const t=this.scheduleUpdate();return null!=t&&await t,!this.isUpdatePending}scheduleUpdate(){return this.performUpdate()}performUpdate(){if(!this.isUpdatePending)return;if(!this.hasUpdated){if(this.renderRoot??=this.createRenderRoot(),this._$Ep){for(const[t,s]of this._$Ep)this[t]=s;this._$Ep=void 0;}const t=this.constructor.elementProperties;if(t.size>0)for(const[s,i]of t){const{wrapped:t}=i,e=this[s];true!==t||this._$AL.has(s)||void 0===e||this.C(s,void 0,i,e);}}let t=false;const s=this._$AL;try{t=this.shouldUpdate(s),t?(this.willUpdate(s),this._$EO?.forEach(t=>t.hostUpdate?.()),this.update(s)):this._$EM();}catch(s){throw t=false,this._$EM(),s}t&&this._$AE(s);}willUpdate(t){}_$AE(t){this._$EO?.forEach(t=>t.hostUpdated?.()),this.hasUpdated||(this.hasUpdated=true,this.firstUpdated(t)),this.updated(t);}_$EM(){this._$AL=new Map,this.isUpdatePending=false;}get updateComplete(){return this.getUpdateComplete()}getUpdateComplete(){return this._$ES}shouldUpdate(t){return  true}update(t){this._$Eq&&=this._$Eq.forEach(t=>this._$ET(t,this[t])),this._$EM();}updated(t){}firstUpdated(t){}};y$1.elementStyles=[],y$1.shadowRootOptions={mode:"open"},y$1[d$1("elementProperties")]=new Map,y$1[d$1("finalized")]=new Map,p$1?.({ReactiveElement:y$1}),(a$1.reactiveElementVersions??=[]).push("2.1.2");
+
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+const t$2=globalThis,i$3=t=>t,s$1=t$2.trustedTypes,e$1=s$1?s$1.createPolicy("lit-html",{createHTML:t=>t}):void 0,h="$lit$",o$3=`lit$${Math.random().toFixed(9).slice(2)}$`,n$2="?"+o$3,r$2=`<${n$2}>`,l=document,c=()=>l.createComment(""),a=t=>null===t||"object"!=typeof t&&"function"!=typeof t,u=Array.isArray,d=t=>u(t)||"function"==typeof t?.[Symbol.iterator],f="[ \t\n\f\r]",v=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,_=/-->/g,m=/>/g,p=RegExp(`>|${f}(?:([^\\s"'>=/]+)(${f}*=${f}*(?:[^ \t\n\f\r"'\`<>=]|("|')|))|$)`,"g"),g=/'/g,$=/"/g,y=/^(?:script|style|textarea|title)$/i,x=t=>(i,...s)=>({_$litType$:t,strings:i,values:s}),b=x(1),E=Symbol.for("lit-noChange"),A=Symbol.for("lit-nothing"),C=new WeakMap,P=l.createTreeWalker(l,129);function V(t,i){if(!u(t)||!t.hasOwnProperty("raw"))throw Error("invalid template strings array");return void 0!==e$1?e$1.createHTML(i):i}const N=(t,i)=>{const s=t.length-1,e=[];let n,l=2===i?"<svg>":3===i?"<math>":"",c=v;for(let i=0;i<s;i++){const s=t[i];let a,u,d=-1,f=0;for(;f<s.length&&(c.lastIndex=f,u=c.exec(s),null!==u);)f=c.lastIndex,c===v?"!--"===u[1]?c=_:void 0!==u[1]?c=m:void 0!==u[2]?(y.test(u[2])&&(n=RegExp("</"+u[2],"g")),c=p):void 0!==u[3]&&(c=p):c===p?">"===u[0]?(c=n??v,d=-1):void 0===u[1]?d=-2:(d=c.lastIndex-u[2].length,a=u[1],c=void 0===u[3]?p:'"'===u[3]?$:g):c===$||c===g?c=p:c===_||c===m?c=v:(c=p,n=void 0);const x=c===p&&t[i+1].startsWith("/>")?" ":"";l+=c===v?s+r$2:d>=0?(e.push(a),s.slice(0,d)+h+s.slice(d)+o$3+x):s+o$3+(-2===d?i:x);}return [V(t,l+(t[s]||"<?>")+(2===i?"</svg>":3===i?"</math>":"")),e]};class S{constructor({strings:t,_$litType$:i},e){let r;this.parts=[];let l=0,a=0;const u=t.length-1,d=this.parts,[f,v]=N(t,i);if(this.el=S.createElement(f,e),P.currentNode=this.el.content,2===i||3===i){const t=this.el.content.firstChild;t.replaceWith(...t.childNodes);}for(;null!==(r=P.nextNode())&&d.length<u;){if(1===r.nodeType){if(r.hasAttributes())for(const t of r.getAttributeNames())if(t.endsWith(h)){const i=v[a++],s=r.getAttribute(t).split(o$3),e=/([.?@])?(.*)/.exec(i);d.push({type:1,index:l,name:e[2],strings:s,ctor:"."===e[1]?I:"?"===e[1]?L:"@"===e[1]?z:H}),r.removeAttribute(t);}else t.startsWith(o$3)&&(d.push({type:6,index:l}),r.removeAttribute(t));if(y.test(r.tagName)){const t=r.textContent.split(o$3),i=t.length-1;if(i>0){r.textContent=s$1?s$1.emptyScript:"";for(let s=0;s<i;s++)r.append(t[s],c()),P.nextNode(),d.push({type:2,index:++l});r.append(t[i],c());}}}else if(8===r.nodeType)if(r.data===n$2)d.push({type:2,index:l});else {let t=-1;for(;-1!==(t=r.data.indexOf(o$3,t+1));)d.push({type:7,index:l}),t+=o$3.length-1;}l++;}}static createElement(t,i){const s=l.createElement("template");return s.innerHTML=t,s}}function M(t,i,s=t,e){if(i===E)return i;let h=void 0!==e?s._$Co?.[e]:s._$Cl;const o=a(i)?void 0:i._$litDirective$;return h?.constructor!==o&&(h?._$AO?.(false),void 0===o?h=void 0:(h=new o(t),h._$AT(t,s,e)),void 0!==e?(s._$Co??=[])[e]=h:s._$Cl=h),void 0!==h&&(i=M(t,h._$AS(t,i.values),h,e)),i}class R{constructor(t,i){this._$AV=[],this._$AN=void 0,this._$AD=t,this._$AM=i;}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}u(t){const{el:{content:i},parts:s}=this._$AD,e=(t?.creationScope??l).importNode(i,true);P.currentNode=e;let h=P.nextNode(),o=0,n=0,r=s[0];for(;void 0!==r;){if(o===r.index){let i;2===r.type?i=new k(h,h.nextSibling,this,t):1===r.type?i=new r.ctor(h,r.name,r.strings,this,t):6===r.type&&(i=new Z(h,this,t)),this._$AV.push(i),r=s[++n];}o!==r?.index&&(h=P.nextNode(),o++);}return P.currentNode=l,e}p(t){let i=0;for(const s of this._$AV) void 0!==s&&(void 0!==s.strings?(s._$AI(t,s,i),i+=s.strings.length-2):s._$AI(t[i])),i++;}}class k{get _$AU(){return this._$AM?._$AU??this._$Cv}constructor(t,i,s,e){this.type=2,this._$AH=A,this._$AN=void 0,this._$AA=t,this._$AB=i,this._$AM=s,this.options=e,this._$Cv=e?.isConnected??true;}get parentNode(){let t=this._$AA.parentNode;const i=this._$AM;return void 0!==i&&11===t?.nodeType&&(t=i.parentNode),t}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(t,i=this){t=M(this,t,i),a(t)?t===A||null==t||""===t?(this._$AH!==A&&this._$AR(),this._$AH=A):t!==this._$AH&&t!==E&&this._(t):void 0!==t._$litType$?this.$(t):void 0!==t.nodeType?this.T(t):d(t)?this.k(t):this._(t);}O(t){return this._$AA.parentNode.insertBefore(t,this._$AB)}T(t){this._$AH!==t&&(this._$AR(),this._$AH=this.O(t));}_(t){this._$AH!==A&&a(this._$AH)?this._$AA.nextSibling.data=t:this.T(l.createTextNode(t)),this._$AH=t;}$(t){const{values:i,_$litType$:s}=t,e="number"==typeof s?this._$AC(t):(void 0===s.el&&(s.el=S.createElement(V(s.h,s.h[0]),this.options)),s);if(this._$AH?._$AD===e)this._$AH.p(i);else {const t=new R(e,this),s=t.u(this.options);t.p(i),this.T(s),this._$AH=t;}}_$AC(t){let i=C.get(t.strings);return void 0===i&&C.set(t.strings,i=new S(t)),i}k(t){u(this._$AH)||(this._$AH=[],this._$AR());const i=this._$AH;let s,e=0;for(const h of t)e===i.length?i.push(s=new k(this.O(c()),this.O(c()),this,this.options)):s=i[e],s._$AI(h),e++;e<i.length&&(this._$AR(s&&s._$AB.nextSibling,e),i.length=e);}_$AR(t=this._$AA.nextSibling,s){for(this._$AP?.(false,true,s);t!==this._$AB;){const s=i$3(t).nextSibling;i$3(t).remove(),t=s;}}setConnected(t){ void 0===this._$AM&&(this._$Cv=t,this._$AP?.(t));}}class H{get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}constructor(t,i,s,e,h){this.type=1,this._$AH=A,this._$AN=void 0,this.element=t,this.name=i,this._$AM=e,this.options=h,s.length>2||""!==s[0]||""!==s[1]?(this._$AH=Array(s.length-1).fill(new String),this.strings=s):this._$AH=A;}_$AI(t,i=this,s,e){const h=this.strings;let o=false;if(void 0===h)t=M(this,t,i,0),o=!a(t)||t!==this._$AH&&t!==E,o&&(this._$AH=t);else {const e=t;let n,r;for(t=h[0],n=0;n<h.length-1;n++)r=M(this,e[s+n],i,n),r===E&&(r=this._$AH[n]),o||=!a(r)||r!==this._$AH[n],r===A?t=A:t!==A&&(t+=(r??"")+h[n+1]),this._$AH[n]=r;}o&&!e&&this.j(t);}j(t){t===A?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,t??"");}}class I extends H{constructor(){super(...arguments),this.type=3;}j(t){this.element[this.name]=t===A?void 0:t;}}class L extends H{constructor(){super(...arguments),this.type=4;}j(t){this.element.toggleAttribute(this.name,!!t&&t!==A);}}class z extends H{constructor(t,i,s,e,h){super(t,i,s,e,h),this.type=5;}_$AI(t,i=this){if((t=M(this,t,i,0)??A)===E)return;const s=this._$AH,e=t===A&&s!==A||t.capture!==s.capture||t.once!==s.once||t.passive!==s.passive,h=t!==A&&(s===A||e);e&&this.element.removeEventListener(this.name,this,s),h&&this.element.addEventListener(this.name,this,t),this._$AH=t;}handleEvent(t){"function"==typeof this._$AH?this._$AH.call(this.options?.host??this.element,t):this._$AH.handleEvent(t);}}class Z{constructor(t,i,s){this.element=t,this.type=6,this._$AN=void 0,this._$AM=i,this.options=s;}get _$AU(){return this._$AM._$AU}_$AI(t){M(this,t);}}const B=t$2.litHtmlPolyfillSupport;B?.(S,k),(t$2.litHtmlVersions??=[]).push("3.3.2");const D=(t,i,s)=>{const e=s?.renderBefore??i;let h=e._$litPart$;if(void 0===h){const t=s?.renderBefore??null;e._$litPart$=h=new k(i.insertBefore(c(),t),t,void 0,s??{});}return h._$AI(t),h};
+
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */const s=globalThis;let i$2 = class i extends y$1{constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0;}createRenderRoot(){const t=super.createRenderRoot();return this.renderOptions.renderBefore??=t.firstChild,t}update(t){const r=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(t),this._$Do=D(r,this.renderRoot,this.renderOptions);}connectedCallback(){super.connectedCallback(),this._$Do?.setConnected(true);}disconnectedCallback(){super.disconnectedCallback(),this._$Do?.setConnected(false);}render(){return E}};i$2._$litElement$=true,i$2["finalized"]=true,s.litElementHydrateSupport?.({LitElement:i$2});const o$2=s.litElementPolyfillSupport;o$2?.({LitElement:i$2});(s.litElementVersions??=[]).push("4.2.2");
+
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+const t$1=t=>(e,o)=>{ void 0!==o?o.addInitializer(()=>{customElements.define(t,e);}):customElements.define(t,e);};
+
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */const o$1={attribute:true,type:String,converter:u$1,reflect:false,hasChanged:f$1},r$1=(t=o$1,e,r)=>{const{kind:n,metadata:i}=r;let s=globalThis.litPropertyMetadata.get(i);if(void 0===s&&globalThis.litPropertyMetadata.set(i,s=new Map),"setter"===n&&((t=Object.create(t)).wrapped=true),s.set(r.name,t),"accessor"===n){const{name:o}=r;return {set(r){const n=e.get.call(this);e.set.call(this,r),this.requestUpdate(o,n,t,true,r);},init(e){return void 0!==e&&this.C(o,void 0,t,e),e}}}if("setter"===n){const{name:o}=r;return function(r){const n=this[o];e.call(this,r),this.requestUpdate(o,n,t,true,r);}}throw Error("Unsupported decorator location: "+n)};function n$1(t){return (e,o)=>"object"==typeof o?r$1(t,e,o):((t,e,o)=>{const r=e.hasOwnProperty(o);return e.constructor.createProperty(o,t),r?Object.getOwnPropertyDescriptor(e,o):void 0})(t,e,o)}
+
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */function r(r){return n$1({...r,state:true,attribute:false})}
+
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+const t={ATTRIBUTE:1},e=t=>(...e)=>({_$litDirective$:t,values:e});let i$1 = class i{constructor(t){}get _$AU(){return this._$AM._$AU}_$AT(t,e,i){this._$Ct=t,this._$AM=e,this._$Ci=i;}_$AS(t,e){return this.update(t,e)}update(t,e){return this.render(...e)}};
+
+/**
+ * @license
+ * Copyright 2018 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */const n="important",i=" !"+n,o=e(class extends i$1{constructor(t$1){if(super(t$1),t$1.type!==t.ATTRIBUTE||"style"!==t$1.name||t$1.strings?.length>2)throw Error("The `styleMap` directive must be used in the `style` attribute and must be the only part in the attribute.")}render(t){return Object.keys(t).reduce((e,r)=>{const s=t[r];return null==s?e:e+`${r=r.includes("-")?r:r.replace(/(?:^(webkit|moz|ms|o)|)(?=[A-Z])/g,"-$&").toLowerCase()}:${s};`},"")}update(e,[r]){const{style:s}=e.element;if(void 0===this.ft)return this.ft=new Set(Object.keys(r)),this.render(r);for(const t of this.ft)null==r[t]&&(this.ft.delete(t),t.includes("-")?s.removeProperty(t):s[t]=null);for(const t in r){const e=r[t];if(null!=e){this.ft.add(t);const r="string"==typeof e&&e.endsWith(i);t.includes("-")||r?s.setProperty(t,r?e.slice(0,-11):e,r?n:""):s[t]=e;}}return E}});
+
+const CARD_TYPE = 'skyfield-scenic-horizon-card';
+const CARD_NAME = 'Skyfield Scenic Horizon Card';
+const CARD_DESCRIPTION = 'Scenic day/night landscape card driven by Skyfield sun and moon sensors.';
+const DOMAIN = 'skyfield_test';
+/** Sensor name segments used to build default entity IDs */
+const SENSOR_NAMES = {
+    sunElevation: 'solar_elevation',
+    sunAzimuth: 'solar_azimuth',
+    moonElevation: 'lunar_elevation',
+    moonAzimuth: 'lunar_azimuth',
+    moonPhaseAngle: 'lunar_phase_angle',
+    moonParallacticAngle: 'lunar_parallactic_angle',
+    sunrise: 'sunrise',
+    sunset: 'sunset',
+    declinationNormalized: 'solar_declination_normalized',
+};
+/**
+ * Default azimuth range when sunrise/sunset azimuth attributes are not available.
+ * Approximate annual range for mid-latitudes (Calgary ~51°N).
+ */
+const DEFAULT_AZIMUTH_MIN = 60;
+const DEFAULT_AZIMUTH_MAX = 300;
+/** Default percentage from top at which 0° elevation is drawn */
+const DEFAULT_HORIZON_Y = 55;
+/** Maximum visible elevation drawn at the top of the sky area (%) */
+const MAX_ELEVATION_DEG = 70;
+/**
+ * Sun elevation thresholds that define transition stages (degrees).
+ * These match the pyscript circadian_evening / circadian_twilight boundaries.
+ */
+const ELEVATION = {
+    GOLDEN_HOUR_START: 6, // above this → full day
+    TWILIGHT_START: 0, // civil twilight begins
+    TWILIGHT_END: -12};
+/** Default evening threshold elevations (seasonal – pyscript circadian_evening_day) */
+const EVENING_ELEV_SUMMER = 15; // degrees, near summer solstice
+const EVENING_ELEV_WINTER = 10; // degrees, near winter solstice
+/** CSS transition duration applied to all animated layer properties */
+const CSS_TRANSITION_DURATION = '60s';
+
+/**
+ * Build the default entity ID for a sensor given an optional location_name prefix.
+ * e.g. location_name="calgary" → sensor.skyfield_test_calgary_solar_elevation
+ *      location_name=undefined  → sensor.skyfield_test_solar_elevation
+ */
+function defaultEntityId(sensorKey, locationName) {
+    const name = SENSOR_NAMES[sensorKey];
+    const prefix = locationName ? `${locationName.toLowerCase().replace(/\s+/g, '_')}_` : '';
+    return `sensor.${DOMAIN}_${prefix}${name}`;
+}
+/** Resolve all entity IDs from config, falling back to defaults */
+function resolveEntities(config) {
+    const loc = config.location_name;
+    return {
+        sunElevation: config.sun_elevation_entity ?? defaultEntityId('sunElevation', loc),
+        sunAzimuth: config.sun_azimuth_entity ?? defaultEntityId('sunAzimuth', loc),
+        moonElevation: config.moon_elevation_entity ?? defaultEntityId('moonElevation', loc),
+        moonAzimuth: config.moon_azimuth_entity ?? defaultEntityId('moonAzimuth', loc),
+        moonPhaseAngle: config.moon_phase_angle_entity ?? defaultEntityId('moonPhaseAngle', loc),
+        moonParallacticAngle: config.moon_parallactic_angle_entity ?? defaultEntityId('moonParallacticAngle', loc),
+        sunrise: config.sunrise_entity ?? defaultEntityId('sunrise', loc),
+        sunset: config.sunset_entity ?? defaultEntityId('sunset', loc),
+        declinationNormalized: config.declination_normalized_entity ?? defaultEntityId('declinationNormalized', loc),
+    };
+}
+/** Safely read a numeric sensor state, returning a fallback on failure */
+function getNumericState(hass, entityId, fallback) {
+    const state = hass.states[entityId];
+    if (!state)
+        return fallback;
+    const value = parseFloat(state.state);
+    return isNaN(value) ? fallback : value;
+}
+/** Safely read a numeric attribute, returning a fallback on failure */
+function getNumericAttribute(hass, entityId, attribute, fallback) {
+    const state = hass.states[entityId];
+    if (!state)
+        return fallback;
+    const value = parseFloat(state.attributes[attribute]);
+    return isNaN(value) ? fallback : value;
+}
+/**
+ * Determine the azimuth range for the current day.
+ * Reads azimuth attributes from sunrise/sunset sensors if available;
+ * otherwise falls back to config values or the built-in defaults.
+ */
+function getAzimuthRange(hass, entities, config) {
+    const riseAz = getNumericAttribute(hass, entities.sunrise, 'rise_azimuth', NaN);
+    const setAz = getNumericAttribute(hass, entities.sunset, 'set_azimuth', NaN);
+    if (!isNaN(riseAz) && !isNaN(setAz) && riseAz < setAz) {
+        return { min: riseAz, max: setAz };
+    }
+    return {
+        min: config.azimuth_min ?? DEFAULT_AZIMUTH_MIN,
+        max: config.azimuth_max ?? DEFAULT_AZIMUTH_MAX,
+    };
+}
+/**
+ * Return all sensor values needed to render the card in a single call.
+ */
+function readSensors(hass, entities, config) {
+    const azRange = getAzimuthRange(hass, entities, config);
+    return {
+        sunElevation: getNumericState(hass, entities.sunElevation, 0),
+        sunAzimuth: getNumericState(hass, entities.sunAzimuth, azRange.min + (azRange.max - azRange.min) / 2),
+        moonElevation: getNumericState(hass, entities.moonElevation, -30),
+        moonAzimuth: getNumericState(hass, entities.moonAzimuth, azRange.min),
+        moonPhaseAngle: getNumericState(hass, entities.moonPhaseAngle, 0),
+        moonParallacticAngle: getNumericState(hass, entities.moonParallacticAngle, 0),
+        declinationNormalized: getNumericState(hass, entities.declinationNormalized, 0.5),
+        azimuthRange: azRange,
+    };
+}
+
+/** Clamp a value between min and max */
+function clamp(value, min, max) {
+    return Math.min(Math.max(value, min), max);
+}
+/** Linear interpolation from a → b by t (0–1) */
+function lerp(a, b, t) {
+    return a + (b - a) * t;
+}
+/**
+ * Map a value from [fromMin, fromMax] → [0, 1], clamped.
+ * Returns 0 when value === fromMin, 1 when value === fromMax.
+ */
+function normalize(value, fromMin, fromMax) {
+    if (fromMax === fromMin)
+        return 0;
+    return clamp((value - fromMin) / (fromMax - fromMin), 0, 1);
+}
+/**
+ * Calculate all day/night transition values from sun elevation.
+ *
+ * Mirrors pyscript circadian_on_off() logic:
+ *
+ *   circadian_evening:  0 = full day (sun above threshold),
+ *                       1 = evening reached (sun at 5°)
+ *   circadian_twilight: 0 = day (sun at 0°),
+ *                       1 = full night (sun at −12°)
+ *   circadian_stars:    star layer opacity (appears in second half of twilight)
+ *   sky:                vertical offset for sky background layer (percentage)
+ */
+function calcTransitions(sunElevation, declinationNormalized, config) {
+    const eveningSummer = config.evening_elev_summer ?? EVENING_ELEV_SUMMER;
+    const eveningWinter = config.evening_elev_winter ?? EVENING_ELEV_WINTER;
+    // Seasonal evening threshold: interpolate between winter and summer values.
+    // declinationNormalized: −1 = December solstice, +1 = June solstice → remap to [0, 1]
+    const seasonT = clamp((declinationNormalized + 1) / 2, 0, 1);
+    const eveningDay = lerp(eveningWinter, eveningSummer, seasonT);
+    const eveningNight = ELEVATION.GOLDEN_HOUR_START; // 5° (matches pyscript circadian_evening_night)
+    // circadian_evening: 0 = full day (sun at or above eveningDay),
+    //                    1 = sun has reached eveningNight (5°)
+    const evening = normalize(sunElevation, eveningDay, eveningNight);
+    // circadian_twilight: 0 = sun at horizon (0°), 1 = full night (−12°)
+    const twilight = normalize(sunElevation, ELEVATION.TWILIGHT_START, ELEVATION.TWILIGHT_END);
+    // Stars: appear in the second half of twilight progression
+    const stars = clamp((twilight - 0.5) * 2, 0, 1);
+    // Sky background position — mirrors pyscript circadian_sky:
+    //   combined = (evening/2 + twilight/2) * 400
+    //   if twilight == 0 (daytime): negate (morning/evening position above centre)
+    const rawSky = ((evening / 2) + (twilight / 2)) * 400;
+    const sky = twilight === 0 ? -rawSky : rawSky;
+    return { evening, twilight, stars, sky };
+}
+/**
+ * Build a CSS filter string for the scene layers based on current transition values.
+ *
+ * Stages:
+ *   Day  (evening=0, twilight=0) → no filter modification
+ *   Golden hour (evening rises)  → warm sepia tint, slight brightness drop
+ *   Civil twilight (twilight 0→0.5) → blue-grey shift, dimming begins
+ *   Nautical twilight (twilight 0.5→1) → deep blue, near-dark
+ */
+function calcSceneFilter(transitions) {
+    const { evening, twilight } = transitions;
+    // brightness: 1.0 (day) → 0.85 (golden) → 0.45 (civil twilight) → 0.12 (night)
+    const brightDay = 1.0;
+    const brightGolden = 0.85;
+    const brightCivil = 0.45;
+    const brightNight = 0.12;
+    let brightness;
+    if (twilight < 0.5) {
+        // Day → civil twilight boundary
+        const t = twilight * 2; // 0→1 over first half
+        brightness = lerp(lerp(brightDay, brightGolden, evening), brightCivil, t);
+    }
+    else {
+        // Civil twilight → night
+        brightness = lerp(brightCivil, brightNight, (twilight - 0.5) * 2);
+    }
+    // saturation: 1.0 (day) → 1.4 (golden hour) → 0.6 (civil) → 0.25 (night)
+    const satGolden = 1.4;
+    const satCivil = 0.6;
+    const satNight = 0.25;
+    let saturation;
+    if (twilight < 0.5) {
+        const t = twilight * 2;
+        saturation = lerp(lerp(1.0, satGolden, evening), satCivil, t);
+    }
+    else {
+        saturation = lerp(satCivil, satNight, (twilight - 0.5) * 2);
+    }
+    // hue-rotate: 0° (day) → 0° (golden, sepia handles warmth) → 200° (civil) → 230° (night)
+    const hueCivil = 200;
+    const hueNight = 230;
+    const hue = twilight < 0.5
+        ? lerp(0, hueCivil, twilight * 2)
+        : lerp(hueCivil, hueNight, (twilight - 0.5) * 2);
+    // sepia: 0 (day) → 0.2 (golden hour) → 0 (civil twilight onwards)
+    const sepia = clamp(evening * 0.2 - twilight * 0.4, 0, 0.2);
+    return [
+        `brightness(${brightness.toFixed(3)})`,
+        `saturate(${saturation.toFixed(3)})`,
+        `hue-rotate(${hue.toFixed(1)}deg)`,
+        `sepia(${sepia.toFixed(3)})`,
+    ].join(' ');
+}
+/**
+ * Calculate the background-position-y value for the sky gradient layer.
+ *
+ * Returns a percentage (0–100%) to use with CSS background-position-y.
+ * 0% = top of the image (night sky), 50% = middle (day colours),
+ * 100% = bottom of the image.
+ *
+ * The sky value from calcTransitions mirrors pyscript's circadian_sky range:
+ *   negative → evening/morning (above-centre portion of image)
+ *   0        → midday (centre portion)
+ *   positive → twilight/night (below-centre portion ... wraps around image)
+ *
+ * We map this to a background-position-y that scrolls the sky gradient image.
+ * The user may need to tweak this to match their specific sky image layout.
+ */
+function calcSkyPosition(transitions) {
+    // Map pyscript sky range (roughly −200 to +400) to 0–100% background-position-y.
+    // Centre of the image (50%) = midday. Negative sky shifts toward morning (below 50%).
+    // Positive sky shifts toward night (above 50%, wrapping through night colours).
+    const rawSky = transitions.sky; // already in pyscript scale (−200 to ~400)
+    const pct = clamp(50 - rawSky / 8, 0, 100);
+    return `${pct.toFixed(1)}%`;
+}
+/**
+ * Map a celestial body's azimuth and elevation to x/y percentages within the card.
+ *
+ * @param azimuth   Body azimuth in degrees (0–360, north = 0, east = 90)
+ * @param elevation Body elevation in degrees (negative = below horizon)
+ * @param range     Sunrise/sunset azimuth range for this day
+ * @param horizonY  % from top of card where elevation = 0° falls (default 55)
+ */
+function celestialPosition(azimuth, elevation, range, horizonY = DEFAULT_HORIZON_Y) {
+    const span = range.max - range.min;
+    const x = span > 0
+        ? clamp(((azimuth - range.min) / span) * 100, -5, 105)
+        : 50;
+    // Sky area spans from 5% top to horizonY; max elevation at ~5% from top
+    const skyAreaHeight = horizonY - 5;
+    const elevFraction = clamp(elevation / MAX_ELEVATION_DEG, -1, 1);
+    // Positive elevation → move up (lower % value); negative → move below horizon
+    const y = horizonY - elevFraction * skyAreaHeight;
+    return { x, y };
+}
+/**
+ * Format a moon phase angle (0–360) to a zero-padded 3-digit string for image lookup.
+ * e.g. 7 → "007", 159 → "159"
+ */
+function formatPhaseAngle(angle) {
+    const clamped = clamp(Math.round(angle), 0, 360);
+    return clamped.toString().padStart(3, '0');
+}
+/**
+ * Resolve the moon phase image URL from the config template and current phase angle.
+ * The config template uses {angle} as placeholder, e.g. /local/moon/phase_{angle}.png
+ */
+function moonImageUrl(template, angle) {
+    return template.replace('{angle}', formatPhaseAngle(angle));
+}
+
+const TRANSITION = r$4(CSS_TRANSITION_DURATION);
+let SkylineHorizonCard = class SkylineHorizonCard extends i$2 {
+    static get styles() {
+        return i$5 `
+      :host {
+        display: block;
+        position: relative;
+        overflow: hidden;
+        border-radius: var(--ha-card-border-radius, 12px);
+      }
+
+      ha-card {
+        overflow: hidden;
+        border-radius: inherit;
+      }
+
+      .card-container {
+        position: relative;
+        width: 100%;
+        /* 8:3 aspect ratio default; override with CSS custom property --shc-aspect-ratio */
+        padding-bottom: var(--shc-aspect-ratio, 37.5%);
+        overflow: hidden;
+      }
+
+      .layer {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-size: cover;
+        background-position: center top;
+        background-repeat: no-repeat;
+      }
+
+      .layer--sky {
+        z-index: 0;
+        background-size: 100% auto;
+        background-repeat: no-repeat;
+        transition: background-position-y ${TRANSITION} ease;
+      }
+
+      .layer--stars {
+        z-index: 2;
+        mix-blend-mode: hard-light;
+        transition: opacity ${TRANSITION} ease;
+      }
+
+      .layer--clouds {
+        z-index: 3;
+        mix-blend-mode: overlay;
+      }
+
+      .layer--foreground {
+        z-index: 3;
+        transition: filter ${TRANSITION} ease;
+      }
+
+      .celestial-body {
+        position: absolute;
+        transform: translate(-50%, -50%);
+        z-index: 1;
+        pointer-events: none;
+        transition:
+          left ${TRANSITION} ease,
+          top ${TRANSITION} ease,
+          opacity ${TRANSITION} ease;
+      }
+
+      .celestial-body img {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+
+      .moon-img {
+        width: 100%;
+        height: auto;
+        display: block;
+        mix-blend-mode: screen;
+      }
+    `;
+    }
+    setConfig(config) {
+        if (!config.foregrounds || config.foregrounds.length === 0) {
+            throw new Error(`${CARD_TYPE}: at least one entry under "foregrounds" is required`);
+        }
+        if (!config.sun_image) {
+            throw new Error(`${CARD_TYPE}: "sun_image" is required`);
+        }
+        if (!config.moon_image_path) {
+            throw new Error(`${CARD_TYPE}: "moon_image_path" is required — use {angle} as placeholder, e.g. /local/moon/phase_{angle}.png`);
+        }
+        this._config = config;
+    }
+    set hass(hass) {
+        this._hass = hass;
+        this.requestUpdate();
+    }
+    get hass() {
+        return this._hass;
+    }
+    get activeForeground() {
+        const id = this._config.active_foreground;
+        const fg = id ? this._config.foregrounds.find(f => f.id === id) : undefined;
+        return fg ?? this._config.foregrounds[0];
+    }
+    render() {
+        if (!this._hass || !this._config)
+            return b ``;
+        const entities = resolveEntities(this._config);
+        const sensors = readSensors(this._hass, entities, this._config);
+        const transitions = calcTransitions(sensors.sunElevation, sensors.declinationNormalized, this._config);
+        const sceneFilter = calcSceneFilter(transitions);
+        const skyPosition = calcSkyPosition(transitions);
+        const fg = this.activeForeground;
+        const horizonY = this._config.horizon_y ?? 55;
+        const sunPos = celestialPosition(sensors.sunAzimuth, sensors.sunElevation, sensors.azimuthRange, horizonY);
+        const moonPos = celestialPosition(sensors.moonAzimuth, sensors.moonElevation, sensors.azimuthRange, horizonY);
+        const moonUrl = moonImageUrl(this._config.moon_image_path, sensors.moonPhaseAngle);
+        return b `
+      <ha-card>
+        <div class="card-container">
+
+          <!-- Layer 0: Sky background gradient, background-position-y scrolls through time of day -->
+          <div
+            class="layer layer--sky"
+            style=${o({
+            backgroundImage: `url('${fg.background}')`,
+            backgroundPositionY: skyPosition,
+        })}
+          ></div>
+
+          <!-- Layer 1: Sun -->
+          ${this._renderSun(sunPos, sceneFilter)}
+
+          <!-- Layer 1: Moon -->
+          ${this._renderMoon(moonPos, moonUrl, sensors.moonParallacticAngle, transitions.stars)}
+
+          <!-- Layer 2: Stars (opacity driven by twilight transition) -->
+          <div
+            class="layer layer--stars"
+            style=${o({
+            backgroundImage: `url('${fg.stars}')`,
+            opacity: String(transitions.stars),
+        })}
+          ></div>
+
+          <!-- Layer 3: Static foreground (lake scene, trees, etc.) with day/night filter -->
+          <div
+            class="layer layer--foreground"
+            style=${o({
+            backgroundImage: `url('${fg.foreground}')`,
+            filter: sceneFilter,
+        })}
+          ></div>
+
+          <!-- Layer 3: Clouds overlay -->
+          <div
+            class="layer layer--clouds"
+            style=${o({ backgroundImage: `url('${fg.clouds}')` })}
+          ></div>
+
+        </div>
+      </ha-card>
+    `;
+    }
+    _renderSun(pos, filter) {
+        return b `
+      <div
+        class="celestial-body"
+        style=${o({
+            left: `${pos.x}%`,
+            top: `${pos.y}%`,
+            width: '7%',
+            filter,
+        })}
+      >
+        <img src=${this._config.sun_image} alt="Sun" />
+      </div>
+    `;
+    }
+    _renderMoon(pos, imageUrl, parallacticAngle, starsOpacity) {
+        // Moon is visible when it's in the sky area and it's dark enough to see
+        const moonVisible = pos.y >= 0 && pos.y <= 100;
+        const moonOpacity = moonVisible ? Math.max(starsOpacity, 0.15) : 0;
+        return b `
+      <div
+        class="celestial-body"
+        style=${o({
+            left: `${pos.x}%`,
+            top: `${pos.y}%`,
+            width: '7%',
+            opacity: String(moonOpacity),
+            transform: `translate(-50%, -50%) rotate(${parallacticAngle}deg)`,
+            transformOrigin: '50% 50%',
+        })}
+      >
+        <img class="moon-img" src=${imageUrl} alt="Moon" />
+      </div>
+    `;
+    }
+    getCardSize() {
+        return 4;
+    }
+};
+__decorate([
+    r()
+], SkylineHorizonCard.prototype, "_config", void 0);
+SkylineHorizonCard = __decorate([
+    t$1(CARD_TYPE)
+], SkylineHorizonCard);
+window.customCards ?? (window.customCards = []);
+window.customCards.push({
+    type: CARD_TYPE,
+    name: CARD_NAME,
+    preview: false,
+    description: CARD_DESCRIPTION,
+});
+
+export { SkylineHorizonCard };
