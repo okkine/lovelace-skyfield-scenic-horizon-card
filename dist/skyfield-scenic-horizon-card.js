@@ -121,6 +121,10 @@ const SENSOR_NAMES = {
     moonParallacticAngle: 'lunar_parallactic_angle',
     sunrise: 'sunrise',
     sunset: 'sunset',
+    moonrise: 'moonrise',
+    moonset: 'moonset',
+    sunTransit: 'solar_transit',
+    moonTransit: 'lunar_transit',
     declinationNormalized: 'solar_declination_normalized',
 };
 /**
@@ -129,10 +133,16 @@ const SENSOR_NAMES = {
  */
 const DEFAULT_AZIMUTH_MIN = 60;
 const DEFAULT_AZIMUTH_MAX = 300;
-/** Default percentage from top at which 0° elevation is drawn */
-const DEFAULT_HORIZON_Y = 55;
-/** Maximum visible elevation drawn at the top of the sky area (%) */
-const MAX_ELEVATION_DEG = 70;
+/**
+ * Default horizon position: percentage from the BOTTOM of the card where 0° elevation falls.
+ * 0 = bottom, 100 = top, 50 = middle.
+ */
+const DEFAULT_HORIZON_Y = 30;
+/**
+ * Fallback maximum elevation when transit sensors are unavailable.
+ * Used as the elevation that maps to the top of the card.
+ */
+const FALLBACK_MAX_ELEVATION = 60;
 /**
  * Sun elevation thresholds that define transition stages (degrees).
  * These match the pyscript circadian_evening / circadian_twilight boundaries.
@@ -169,6 +179,10 @@ function resolveEntities(config) {
         moonParallacticAngle: config.moon_parallactic_angle_entity ?? defaultEntityId('moonParallacticAngle', loc),
         sunrise: config.sunrise_entity ?? defaultEntityId('sunrise', loc),
         sunset: config.sunset_entity ?? defaultEntityId('sunset', loc),
+        moonrise: config.moonrise_entity ?? defaultEntityId('moonrise', loc),
+        moonset: config.moonset_entity ?? defaultEntityId('moonset', loc),
+        sunTransit: config.sun_transit_entity ?? defaultEntityId('sunTransit', loc),
+        moonTransit: config.moon_transit_entity ?? defaultEntityId('moonTransit', loc),
         declinationNormalized: config.declination_normalized_entity ?? defaultEntityId('declinationNormalized', loc),
     };
 }
@@ -190,14 +204,31 @@ function getNumericAttribute(hass, entityId, attribute, fallback) {
 }
 /**
  * Determine the azimuth range for the current day.
- * Reads azimuth attributes from sunrise/sunset sensors if available;
- * otherwise falls back to config values or the built-in defaults.
+ * Uses the wider of the sun and moon rise/set azimuths so both bodies
+ * fit within the horizontal span of the card.
+ * Falls back to config values or built-in defaults if attributes are absent.
  */
 function getAzimuthRange(hass, entities, config) {
-    const riseAz = getNumericAttribute(hass, entities.sunrise, 'rise_azimuth', NaN);
-    const setAz = getNumericAttribute(hass, entities.sunset, 'set_azimuth', NaN);
-    if (!isNaN(riseAz) && !isNaN(setAz) && riseAz < setAz) {
-        return { min: riseAz, max: setAz };
+    const sunRiseAz = getNumericAttribute(hass, entities.sunrise, 'rise_azimuth', NaN);
+    const sunSetAz = getNumericAttribute(hass, entities.sunset, 'set_azimuth', NaN);
+    const moonRiseAz = getNumericAttribute(hass, entities.moonrise, 'rise_azimuth', NaN);
+    const moonSetAz = getNumericAttribute(hass, entities.moonset, 'set_azimuth', NaN);
+    const hasSun = !isNaN(sunRiseAz) && !isNaN(sunSetAz);
+    const hasMoon = !isNaN(moonRiseAz) && !isNaN(moonSetAz);
+    if (hasSun || hasMoon) {
+        const candidates = [
+            hasSun ? sunRiseAz : Infinity,
+            hasMoon ? moonRiseAz : Infinity,
+        ];
+        const minAz = Math.min(...candidates);
+        const candidatesMax = [
+            hasSun ? sunSetAz : -Infinity,
+            hasMoon ? moonSetAz : -Infinity,
+        ];
+        const maxAz = Math.max(...candidatesMax);
+        if (minAz < maxAz) {
+            return { min: minAz, max: maxAz };
+        }
     }
     return {
         min: config.azimuth_min ?? DEFAULT_AZIMUTH_MIN,
@@ -206,9 +237,18 @@ function getAzimuthRange(hass, entities, config) {
 }
 /**
  * Return all sensor values needed to render the card in a single call.
+ * maxElevation is the greater of today's solar and lunar transit elevations,
+ * used to scale the vertical position of both bodies on the card.
  */
 function readSensors(hass, entities, config) {
     const azRange = getAzimuthRange(hass, entities, config);
+    const sunTransitElevation = getNumericAttribute(hass, entities.sunTransit, 'transit_elevation', NaN);
+    const moonTransitElevation = getNumericAttribute(hass, entities.moonTransit, 'transit_elevation', NaN);
+    const candidates = [
+        !isNaN(sunTransitElevation) ? sunTransitElevation : -Infinity,
+        !isNaN(moonTransitElevation) ? moonTransitElevation : -Infinity,
+    ];
+    const maxElevation = Math.max(...candidates);
     return {
         sunElevation: getNumericState(hass, entities.sunElevation, 0),
         sunAzimuth: getNumericState(hass, entities.sunAzimuth, azRange.min + (azRange.max - azRange.min) / 2),
@@ -218,6 +258,7 @@ function readSensors(hass, entities, config) {
         moonParallacticAngle: getNumericState(hass, entities.moonParallacticAngle, 0),
         declinationNormalized: getNumericState(hass, entities.declinationNormalized, 0.5),
         azimuthRange: azRange,
+        maxElevation: maxElevation > 0 ? maxElevation : FALLBACK_MAX_ELEVATION,
     };
 }
 
@@ -351,21 +392,34 @@ function calcSkyPosition(transitions) {
 /**
  * Map a celestial body's azimuth and elevation to x/y percentages within the card.
  *
- * @param azimuth   Body azimuth in degrees (0–360, north = 0, east = 90)
- * @param elevation Body elevation in degrees (negative = below horizon)
- * @param range     Sunrise/sunset azimuth range for this day
- * @param horizonY  % from top of card where elevation = 0° falls (default 55)
+ * Coordinate conventions:
+ *   x: 0% = left edge, 100% = right edge (CSS left)
+ *   y: CSS top percentage — 0% = top of card, 100% = bottom of card
+ *
+ * horizonY is expressed as % from the BOTTOM (0=bottom, 50=middle, 100=top),
+ * so CSS top for the horizon = 100 - horizonY.
+ *
+ * maxElevation is today's peak elevation (greater of solar/lunar transit).
+ * At maxElevation the body is at the very top of the card (CSS top = 0%).
+ * At 0° the body is at the horizon line.
+ * Negative elevation places the body below the horizon.
+ *
+ * @param azimuth      Body azimuth in degrees (0–360, north=0, east=90)
+ * @param elevation    Body elevation in degrees (negative = below horizon)
+ * @param range        Today's azimuth range (min = rise az, max = set az)
+ * @param horizonY     % from bottom where 0° elevation falls (default 30)
+ * @param maxElevation Peak elevation today — maps to top of card (default 60)
  */
-function celestialPosition(azimuth, elevation, range, horizonY = DEFAULT_HORIZON_Y) {
+function celestialPosition(azimuth, elevation, range, horizonY = DEFAULT_HORIZON_Y, maxElevation = FALLBACK_MAX_ELEVATION) {
     const span = range.max - range.min;
     const x = span > 0
         ? clamp(((azimuth - range.min) / span) * 100, -5, 105)
         : 50;
-    // Sky area spans from 5% top to horizonY; max elevation at ~5% from top
-    const skyAreaHeight = horizonY - 5;
-    const elevFraction = clamp(elevation / MAX_ELEVATION_DEG, -1, 1);
-    // Positive elevation → move up (lower % value); negative → move below horizon
-    const y = horizonY - elevFraction * skyAreaHeight;
+    // CSS top of the horizon line
+    const horizonCssTop = 100 - horizonY;
+    // Scale elevation linearly: 0° → horizonCssTop, maxElevation → 0%
+    // Negative elevation → below horizon (cssTop > horizonCssTop)
+    const y = horizonCssTop * (1 - elevation / maxElevation);
     return { x, y };
 }
 /**
@@ -516,11 +570,11 @@ let SkylineHorizonCard = class SkylineHorizonCard extends i$2 {
         const transitions = calcTransitions(sensors.sunElevation, sensors.declinationNormalized, this._config);
         const sceneFilter = calcSceneFilter(transitions);
         const skyPosition = calcSkyPosition(transitions);
-        const horizonY = this._config.horizon_y ?? 55;
+        const horizonY = this._config.horizon_y ?? 30;
         const images = this._images;
         const fgImage = this._activeForegroundImage;
-        const sunPos = celestialPosition(sensors.sunAzimuth, sensors.sunElevation, sensors.azimuthRange, horizonY);
-        const moonPos = celestialPosition(sensors.moonAzimuth, sensors.moonElevation, sensors.azimuthRange, horizonY);
+        const sunPos = celestialPosition(sensors.sunAzimuth, sensors.sunElevation, sensors.azimuthRange, horizonY, sensors.maxElevation);
+        const moonPos = celestialPosition(sensors.moonAzimuth, sensors.moonElevation, sensors.azimuthRange, horizonY, sensors.maxElevation);
         const moonUrl = moonImageUrl(images.moonPath, sensors.moonPhaseAngle);
         const sunSize = this._config.sun_size ?? DEFAULT_SUN_SIZE;
         const moonSize = this._config.moon_size ?? DEFAULT_MOON_SIZE;
