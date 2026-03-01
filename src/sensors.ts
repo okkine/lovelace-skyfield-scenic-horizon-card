@@ -1,5 +1,11 @@
 import type { HomeAssistant } from 'custom-card-helpers'
-import { DOMAIN, SENSOR_NAMES, DEFAULT_AZIMUTH_MIN, DEFAULT_AZIMUTH_MAX } from './constants'
+import {
+  DOMAIN,
+  SENSOR_NAMES,
+  DEFAULT_AZIMUTH_MIN,
+  DEFAULT_AZIMUTH_MAX,
+  FALLBACK_MAX_ELEVATION,
+} from './constants'
 import type { SkylineCardConfig, ResolvedEntities } from './types'
 
 /**
@@ -25,6 +31,10 @@ export function resolveEntities(config: SkylineCardConfig): ResolvedEntities {
     moonParallacticAngle: config.moon_parallactic_angle_entity ?? defaultEntityId('moonParallacticAngle', loc),
     sunrise: config.sunrise_entity ?? defaultEntityId('sunrise', loc),
     sunset: config.sunset_entity ?? defaultEntityId('sunset', loc),
+    moonrise: config.moonrise_entity ?? defaultEntityId('moonrise', loc),
+    moonset: config.moonset_entity ?? defaultEntityId('moonset', loc),
+    sunTransit: config.sun_transit_entity ?? defaultEntityId('sunTransit', loc),
+    moonTransit: config.moon_transit_entity ?? defaultEntityId('moonTransit', loc),
     declinationNormalized: config.declination_normalized_entity ?? defaultEntityId('declinationNormalized', loc),
   }
 }
@@ -57,19 +67,39 @@ export interface AzimuthRange {
 
 /**
  * Determine the azimuth range for the current day.
- * Reads azimuth attributes from sunrise/sunset sensors if available;
- * otherwise falls back to config values or the built-in defaults.
+ * Uses the wider of the sun and moon rise/set azimuths so both bodies
+ * fit within the horizontal span of the card.
+ * Falls back to config values or built-in defaults if attributes are absent.
  */
 export function getAzimuthRange(
   hass: HomeAssistant,
   entities: ResolvedEntities,
   config: SkylineCardConfig
 ): AzimuthRange {
-  const riseAz = getNumericAttribute(hass, entities.sunrise, 'rise_azimuth', NaN)
-  const setAz = getNumericAttribute(hass, entities.sunset, 'set_azimuth', NaN)
+  const sunRiseAz  = getNumericAttribute(hass, entities.sunrise,  'rise_azimuth', NaN)
+  const sunSetAz   = getNumericAttribute(hass, entities.sunset,   'set_azimuth',  NaN)
+  const moonRiseAz = getNumericAttribute(hass, entities.moonrise, 'rise_azimuth', NaN)
+  const moonSetAz  = getNumericAttribute(hass, entities.moonset,  'set_azimuth',  NaN)
 
-  if (!isNaN(riseAz) && !isNaN(setAz) && riseAz < setAz) {
-    return { min: riseAz, max: setAz }
+  const hasSun  = !isNaN(sunRiseAz)  && !isNaN(sunSetAz)
+  const hasMoon = !isNaN(moonRiseAz) && !isNaN(moonSetAz)
+
+  if (hasSun || hasMoon) {
+    const candidates = [
+      hasSun  ? sunRiseAz  : Infinity,
+      hasMoon ? moonRiseAz : Infinity,
+    ]
+    const minAz = Math.min(...candidates)
+
+    const candidatesMax = [
+      hasSun  ? sunSetAz  : -Infinity,
+      hasMoon ? moonSetAz : -Infinity,
+    ]
+    const maxAz = Math.max(...candidatesMax)
+
+    if (minAz < maxAz) {
+      return { min: minAz, max: maxAz }
+    }
   }
 
   return {
@@ -80,6 +110,8 @@ export function getAzimuthRange(
 
 /**
  * Return all sensor values needed to render the card in a single call.
+ * maxElevation is the greater of today's solar and lunar transit elevations,
+ * used to scale the vertical position of both bodies on the card.
  */
 export function readSensors(
   hass: HomeAssistant,
@@ -88,14 +120,24 @@ export function readSensors(
 ) {
   const azRange = getAzimuthRange(hass, entities, config)
 
+  const sunTransitElevation  = getNumericAttribute(hass, entities.sunTransit,  'transit_elevation', NaN)
+  const moonTransitElevation = getNumericAttribute(hass, entities.moonTransit, 'transit_elevation', NaN)
+
+  const candidates = [
+    !isNaN(sunTransitElevation)  ? sunTransitElevation  : -Infinity,
+    !isNaN(moonTransitElevation) ? moonTransitElevation : -Infinity,
+  ]
+  const maxElevation = Math.max(...candidates)
+
   return {
-    sunElevation: getNumericState(hass, entities.sunElevation, 0),
-    sunAzimuth: getNumericState(hass, entities.sunAzimuth, azRange.min + (azRange.max - azRange.min) / 2),
-    moonElevation: getNumericState(hass, entities.moonElevation, -30),
-    moonAzimuth: getNumericState(hass, entities.moonAzimuth, azRange.min),
-    moonPhaseAngle: getNumericState(hass, entities.moonPhaseAngle, 0),
-    moonParallacticAngle: getNumericState(hass, entities.moonParallacticAngle, 0),
+    sunElevation:        getNumericState(hass, entities.sunElevation,  0),
+    sunAzimuth:          getNumericState(hass, entities.sunAzimuth,    azRange.min + (azRange.max - azRange.min) / 2),
+    moonElevation:       getNumericState(hass, entities.moonElevation, -30),
+    moonAzimuth:         getNumericState(hass, entities.moonAzimuth,   azRange.min),
+    moonPhaseAngle:      getNumericState(hass, entities.moonPhaseAngle, 0),
+    moonParallacticAngle:getNumericState(hass, entities.moonParallacticAngle, 0),
     declinationNormalized: getNumericState(hass, entities.declinationNormalized, 0.5),
     azimuthRange: azRange,
+    maxElevation: maxElevation > 0 ? maxElevation : FALLBACK_MAX_ELEVATION,
   }
 }

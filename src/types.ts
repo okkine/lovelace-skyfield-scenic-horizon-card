@@ -19,16 +19,23 @@ export interface SkylineCardConfig {
   moon_parallactic_angle_entity?: string
   sunrise_entity?: string
   sunset_entity?: string
+  moonrise_entity?: string
+  moonset_entity?: string
+  sun_transit_entity?: string
+  moon_transit_entity?: string
   declination_normalized_entity?: string
 
-  // Horizon position: percentage from top where 0° elevation falls (default 55)
+  /**
+   * Horizon position: percentage from the BOTTOM of the card where 0° elevation falls.
+   * 0 = bottom edge, 50 = middle, 100 = top edge. Default 30.
+   */
   horizon_y?: number
 
   // Sun and moon image widths as percentage of card width
   sun_size?: number    // default 25
   moon_size?: number   // default 7
 
-  // Fallback azimuth range when sunrise/sunset azimuth attributes are unavailable
+  // Fallback azimuth range when rise/set azimuth attributes are unavailable
   azimuth_min?: number
   azimuth_max?: number
 
@@ -46,6 +53,10 @@ export interface ResolvedEntities {
   moonParallacticAngle: string
   sunrise: string
   sunset: string
+  moonrise: string
+  moonset: string
+  sunTransit: string
+  moonTransit: string
   declinationNormalized: string
 }
 
@@ -63,6 +74,6 @@ export interface TransitionValues {
 export interface CelestialPosition {
   /** Horizontal position as percentage of card width (0–100) */
   x: number
-  /** Vertical position as percentage of card height (0–100) */
+  /** Vertical position as CSS top percentage (0 = top of card, 100 = bottom) */
   y: number
 }

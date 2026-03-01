@@ -42,6 +42,10 @@ export const SENSOR_NAMES = {
   moonParallacticAngle: 'lunar_parallactic_angle',
   sunrise: 'sunrise',
   sunset: 'sunset',
+  moonrise: 'moonrise',
+  moonset: 'moonset',
+  sunTransit: 'solar_transit',
+  moonTransit: 'lunar_transit',
   declinationNormalized: 'solar_declination_normalized',
 } as const
 
@@ -52,11 +56,17 @@ export const SENSOR_NAMES = {
 export const DEFAULT_AZIMUTH_MIN = 60
 export const DEFAULT_AZIMUTH_MAX = 300
 
-/** Default percentage from top at which 0° elevation is drawn */
-export const DEFAULT_HORIZON_Y = 55
+/**
+ * Default horizon position: percentage from the BOTTOM of the card where 0° elevation falls.
+ * 0 = bottom, 100 = top, 50 = middle.
+ */
+export const DEFAULT_HORIZON_Y = 30
 
-/** Maximum visible elevation drawn at the top of the sky area (%) */
-export const MAX_ELEVATION_DEG = 70
+/**
+ * Fallback maximum elevation when transit sensors are unavailable.
+ * Used as the elevation that maps to the top of the card.
+ */
+export const FALLBACK_MAX_ELEVATION = 60
 
 /**
  * Sun elevation thresholds that define transition stages (degrees).

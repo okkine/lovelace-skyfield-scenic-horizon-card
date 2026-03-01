@@ -178,7 +178,7 @@ export class SkylineHorizonCard extends LitElement {
     )
     const sceneFilter = calcSceneFilter(transitions)
     const skyPosition = calcSkyPosition(transitions)
-    const horizonY = this._config.horizon_y ?? 55
+    const horizonY = this._config.horizon_y ?? 30
     const images = this._images
     const fgImage = this._activeForegroundImage
 
@@ -186,13 +186,15 @@ export class SkylineHorizonCard extends LitElement {
       sensors.sunAzimuth,
       sensors.sunElevation,
       sensors.azimuthRange,
-      horizonY
+      horizonY,
+      sensors.maxElevation
     )
     const moonPos = celestialPosition(
       sensors.moonAzimuth,
       sensors.moonElevation,
       sensors.azimuthRange,
-      horizonY
+      horizonY,
+      sensors.maxElevation
     )
     const moonUrl = moonImageUrl(images.moonPath, sensors.moonPhaseAngle)
     const sunSize = this._config.sun_size ?? DEFAULT_SUN_SIZE

@@ -3,7 +3,7 @@ import {
   EVENING_ELEV_SUMMER,
   EVENING_ELEV_WINTER,
   DEFAULT_HORIZON_Y,
-  MAX_ELEVATION_DEG,
+  FALLBACK_MAX_ELEVATION,
 } from './constants'
 import type { SkylineCardConfig, TransitionValues, CelestialPosition } from './types'
 import type { AzimuthRange } from './sensors'
@@ -156,27 +156,42 @@ export function calcSkyPosition(transitions: TransitionValues): string {
 /**
  * Map a celestial body's azimuth and elevation to x/y percentages within the card.
  *
- * @param azimuth   Body azimuth in degrees (0–360, north = 0, east = 90)
- * @param elevation Body elevation in degrees (negative = below horizon)
- * @param range     Sunrise/sunset azimuth range for this day
- * @param horizonY  % from top of card where elevation = 0° falls (default 55)
+ * Coordinate conventions:
+ *   x: 0% = left edge, 100% = right edge (CSS left)
+ *   y: CSS top percentage — 0% = top of card, 100% = bottom of card
+ *
+ * horizonY is expressed as % from the BOTTOM (0=bottom, 50=middle, 100=top),
+ * so CSS top for the horizon = 100 - horizonY.
+ *
+ * maxElevation is today's peak elevation (greater of solar/lunar transit).
+ * At maxElevation the body is at the very top of the card (CSS top = 0%).
+ * At 0° the body is at the horizon line.
+ * Negative elevation places the body below the horizon.
+ *
+ * @param azimuth      Body azimuth in degrees (0–360, north=0, east=90)
+ * @param elevation    Body elevation in degrees (negative = below horizon)
+ * @param range        Today's azimuth range (min = rise az, max = set az)
+ * @param horizonY     % from bottom where 0° elevation falls (default 30)
+ * @param maxElevation Peak elevation today — maps to top of card (default 60)
  */
 export function celestialPosition(
   azimuth: number,
   elevation: number,
   range: AzimuthRange,
-  horizonY: number = DEFAULT_HORIZON_Y
+  horizonY: number = DEFAULT_HORIZON_Y,
+  maxElevation: number = FALLBACK_MAX_ELEVATION
 ): CelestialPosition {
   const span = range.max - range.min
   const x = span > 0
     ? clamp(((azimuth - range.min) / span) * 100, -5, 105)
     : 50
 
-  // Sky area spans from 5% top to horizonY; max elevation at ~5% from top
-  const skyAreaHeight = horizonY - 5
-  const elevFraction = clamp(elevation / MAX_ELEVATION_DEG, -1, 1)
-  // Positive elevation → move up (lower % value); negative → move below horizon
-  const y = horizonY - elevFraction * skyAreaHeight
+  // CSS top of the horizon line
+  const horizonCssTop = 100 - horizonY
+
+  // Scale elevation linearly: 0° → horizonCssTop, maxElevation → 0%
+  // Negative elevation → below horizon (cssTop > horizonCssTop)
+  const y = horizonCssTop * (1 - elevation / maxElevation)
 
   return { x, y }
 }
