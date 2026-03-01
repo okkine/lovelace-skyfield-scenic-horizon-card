@@ -1,9 +1,27 @@
 export const CARD_TYPE = 'skyfield-scenic-horizon-card'
 export const CARD_NAME = 'Skyfield Scenic Horizon Card'
 export const CARD_DESCRIPTION =
-  'Scenic day/night landscape card driven by Skyfield sun and moon sensors.'
+  'Scenic day/night landscape card driven by Skyfield sun and moon sensors'
 
 export const DOMAIN = 'skyfield_test'
+
+/** Default base path — where HACS installs the card files */
+export const HACS_BASE_PATH = '/hacsfiles/lovelace-skyfield-scenic-horizon-card/'
+
+/** Default filenames for bundled scene images, relative to HACS_BASE_PATH */
+export const DEFAULT_IMAGES = {
+  skyBackground: 'Lake_Sky_Background5.png',
+  stars: 'Lake_Sky_Stars.png',
+  clouds: 'Lake_Sky_Clouds.png',
+  sun: 'sun-48190c.png',
+  moonPath: 'moon/phase_{angle}.png',
+} as const
+
+/** Default sun width as percentage of card width */
+export const DEFAULT_SUN_SIZE = 25
+
+/** Default moon width as percentage of card width */
+export const DEFAULT_MOON_SIZE = 7
 
 /** Sensor name segments used to build default entity IDs */
 export const SENSOR_NAMES = {

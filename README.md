@@ -51,25 +51,20 @@ config values.
 
 ## Image Setup
 
-Place your images in your Home Assistant `www/` folder (e.g. `www/pictures/`).
-They will be accessible at `/local/pictures/`.
+The shared scene images (sky background, stars, clouds, sun, moon phases) are bundled with the card
+and installed automatically by HACS. You only need to provide your own **foreground** image.
 
-Recommended folder structure:
+Place your foreground image in the card's HACS install folder:
 
 ```
-www/
-  pictures/
-    backgrounds/
-      Lake_Sky_Background5.png
-      Lake_Sky_Stars.png
-      Lake_Sky_Clouds.png
-      Lake_Alpha.png
-    sun-48190c.png
-    moon/
-      phase_000.png
-      phase_001.png
-      ...
-      phase_360.png
+www/community/lovelace-skyfield-scenic-horizon-card/
+  YourForeground.png          ← your foreground scene
+  Lake_Sky_Background5.png    ← bundled (installed by HACS)
+  Lake_Sky_Stars.png          ← bundled
+  Lake_Sky_Clouds.png         ← bundled
+  sun-48190c.png              ← bundled
+  moon/
+    phase_000.png … phase_360.png   ← bundled (361 moon phase images)
 ```
 
 ---
@@ -80,23 +75,15 @@ www/
 
 ```yaml
 type: custom:skyfield-scenic-horizon-card
-sun_image: /local/pictures/sun-48190c.png
-moon_image_path: /local/pictures/moon/phase_{angle}.png
 foregrounds:
   - id: lake
-    label: Lake
-    background: /local/pictures/backgrounds/Lake_Sky_Background5.png
-    stars: /local/pictures/backgrounds/Lake_Sky_Stars.png
-    clouds: /local/pictures/backgrounds/Lake_Sky_Clouds.png
-    foreground: /local/pictures/backgrounds/Lake_Alpha.png
+    image: Lake_Alpha.png
 ```
 
 ### Full example
 
 ```yaml
 type: custom:skyfield-scenic-horizon-card
-sun_image: /local/pictures/sun-48190c.png
-moon_image_path: /local/pictures/moon/phase_{angle}.png
 
 # Active scene (must match an id in foregrounds)
 active_foreground: lake
@@ -104,10 +91,18 @@ active_foreground: lake
 foregrounds:
   - id: lake
     label: Lake Scene
-    background: /local/pictures/backgrounds/Lake_Sky_Background5.png
-    stars: /local/pictures/backgrounds/Lake_Sky_Stars.png
-    clouds: /local/pictures/backgrounds/Lake_Sky_Clouds.png
-    foreground: /local/pictures/backgrounds/Lake_Alpha.png
+    image: Lake_Alpha.png          # filename in HACS install folder, or /absolute/path
+
+# Optional: override the base path for all bundled images.
+# Defaults to /hacsfiles/lovelace-skyfield-scenic-horizon-card/
+# scene_base_path: /local/my-custom-location/
+
+# Optional: override individual bundled images (filename or absolute path)
+# sky_background: Lake_Sky_Background5.png
+# stars_image: Lake_Sky_Stars.png
+# clouds_image: Lake_Sky_Clouds.png
+# sun_image: sun-48190c.png
+# moon_image_path: moon/phase_{angle}.png
 
 # Optional: if your Skyfield entry has a location_name set (e.g. "Calgary"),
 # sensor IDs will be prefixed accordingly.
@@ -127,6 +122,10 @@ foregrounds:
 # Horizon position: % from top where 0° elevation falls (default: 55)
 horizon_y: 55
 
+# Sun and moon image widths as % of card width
+sun_size: 25
+moon_size: 7
+
 # Azimuth range fallback when sunrise/sunset azimuth attributes are not available
 azimuth_min: 60
 azimuth_max: 300
@@ -140,12 +139,18 @@ evening_elev_winter: 10
 
 | Option | Type | Default | Description |
 |---|---|---|---|
-| `foregrounds` | list | required | Scene image definitions |
+| `foregrounds` | list | required | Scene definitions (only the foreground image) |
 | `active_foreground` | string | first entry | `id` of the foreground to display |
-| `sun_image` | string | required | Path to sun image |
-| `moon_image_path` | string | required | Path template with `{angle}` placeholder |
+| `scene_base_path` | string | HACS install path | Base URL for all image lookups |
+| `sky_background` | string | `Lake_Sky_Background5.png` | Sky gradient image override |
+| `stars_image` | string | `Lake_Sky_Stars.png` | Stars overlay image override |
+| `clouds_image` | string | `Lake_Sky_Clouds.png` | Clouds overlay image override |
+| `sun_image` | string | `sun-48190c.png` | Sun image override |
+| `moon_image_path` | string | `moon/phase_{angle}.png` | Moon phase template override |
 | `location_name` | string | — | Skyfield `location_name` for sensor ID prefix |
 | `horizon_y` | number | `55` | % from top where elevation = 0° |
+| `sun_size` | number | `25` | Sun image width as % of card width |
+| `moon_size` | number | `7` | Moon image width as % of card width |
 | `azimuth_min` | number | `60` | Fallback left-edge azimuth |
 | `azimuth_max` | number | `300` | Fallback right-edge azimuth |
 | `evening_elev_summer` | number | `15` | Sun elevation (°) where evening starts at summer solstice |
@@ -157,10 +162,7 @@ Each `foregrounds` entry:
 |---|---|---|---|
 | `id` | string | Yes | Unique identifier |
 | `label` | string | No | Display label |
-| `background` | string | Yes | Sky gradient image |
-| `stars` | string | Yes | Stars overlay image |
-| `clouds` | string | Yes | Clouds overlay image |
-| `foreground` | string | Yes | Foreground scene image |
+| `image` | string | Yes | Foreground image filename or absolute path |
 
 ---
 

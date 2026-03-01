@@ -1,27 +1,38 @@
 export interface ForegroundConfig {
   id: string
   label?: string
-  background: string
-  stars: string
-  clouds: string
-  foreground: string
+  /**
+   * Foreground image: filename relative to scene_base_path, or an absolute path starting with /.
+   * Example: "Lake_Alpha.png"  →  resolved against scene_base_path
+   *          "/local/myscene/Foreground.png"  →  used as-is
+   */
+  image: string
 }
 
 export interface SkylineCardConfig {
   type: string
 
-  // Foreground scene definitions
+  // Foreground scene definitions — only the foreground image changes between scenes
   foregrounds: ForegroundConfig[]
   active_foreground?: string
 
-  // Sun image
-  sun_image: string
+  /**
+   * Base URL for all bundled scene images (sky background, stars, clouds, sun, moon phases).
+   * Defaults to the HACS install location.
+   * Override if you store images elsewhere.
+   */
+  scene_base_path?: string
 
-  // Moon phase images - use {angle} as placeholder, e.g. /local/moon/phase_{angle}.png
-  moon_image_path: string
+  // Optional overrides for individual shared scene images.
+  // Values are filenames relative to scene_base_path, or absolute paths.
+  sky_background?: string
+  stars_image?: string
+  clouds_image?: string
+  sun_image?: string
+  /** Path template — use {angle} as placeholder, e.g. "moon/phase_{angle}.png" */
+  moon_image_path?: string
 
-  // Optional: Skyfield location_name prefix (e.g. "calgary" if sensors are named
-  // sensor.skyfield_test_calgary_solar_elevation). Leave unset for default (no prefix).
+  // Optional: Skyfield location_name prefix
   location_name?: string
 
   // Optional: override individual entity IDs
@@ -38,12 +49,15 @@ export interface SkylineCardConfig {
   // Horizon position: percentage from top where 0° elevation falls (default 55)
   horizon_y?: number
 
+  // Sun and moon image widths as percentage of card width
+  sun_size?: number    // default 25
+  moon_size?: number   // default 7
+
   // Fallback azimuth range when sunrise/sunset azimuth attributes are unavailable
   azimuth_min?: number
   azimuth_max?: number
 
-  // Seasonal evening threshold override range (degrees elevation)
-  // Defaults: evening_elev_summer=15, evening_elev_winter=10
+  // Seasonal evening threshold elevation (degrees)
   evening_elev_summer?: number
   evening_elev_winter?: number
 }
@@ -61,13 +75,13 @@ export interface ResolvedEntities {
 }
 
 export interface TransitionValues {
-  /** 0 = evening/night, 1 = full day */
+  /** 0 = full day, 1 = evening reached */
   evening: number
   /** 0 = day, 1 = full night */
   twilight: number
   /** 0 = no stars, 1 = full stars */
   stars: number
-  /** 0–1 combined sky offset factor */
+  /** Sky background vertical offset (pyscript circadian_sky scale) */
   sky: number
 }
 
