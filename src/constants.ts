@@ -1,7 +1,7 @@
 export const CARD_TYPE = 'skyfield-scenic-horizon-card'
 export const CARD_NAME = 'Skyfield Scenic Horizon Card'
 export const CARD_DESCRIPTION =
-  'Scenic day/night landscape card driven by Skyfield sun and moon sensors.'
+  'Scenic day/night landscape card driven by Skyfield sun and moon sensors'
 
 export const DOMAIN = 'skyfield_test'
 
