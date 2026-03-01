@@ -12,6 +12,7 @@ import {
   DEFAULT_IMAGES,
   DEFAULT_SUN_SIZE,
   DEFAULT_MOON_SIZE,
+  FOREGROUND_IMAGES,
 } from './constants'
 import type { SkylineCardConfig, CelestialPosition } from './types'
 import { resolveEntities, readSensors } from './sensors'
@@ -31,14 +32,8 @@ declare global {
 
 const TRANSITION = unsafeCSS(CSS_TRANSITION_DURATION)
 
-/**
- * Resolve an image path: if it starts with / or http it is used as-is;
- * otherwise it is treated as a filename relative to basePath.
- */
-function resolveImagePath(path: string, basePath: string): string {
-  if (!path) return ''
-  if (path.startsWith('/') || path.startsWith('http')) return path
-  return `${basePath}${path}`
+function fullPath(filename: string): string {
+  return `${HACS_BASE_PATH}${filename}`
 }
 
 @customElement(CARD_TYPE)
@@ -140,12 +135,8 @@ export class SkylineHorizonCard extends LitElement {
   }
 
   public setConfig(config: SkylineCardConfig): void {
-    if (!config.foregrounds || config.foregrounds.length === 0) {
-      throw new Error(
-        `${CARD_TYPE}: at least one entry under "foregrounds" is required`
-      )
-    }
-    this._config = config
+    const n = Math.max(1, Math.min(config.foreground ?? 1, FOREGROUND_IMAGES.length))
+    this._config = { ...config, foreground: n }
   }
 
   set hass(hass: HomeAssistant) {
@@ -157,25 +148,22 @@ export class SkylineHorizonCard extends LitElement {
     return this._hass
   }
 
-  /** Resolve all shared image URLs from config + defaults */
+  /** All scene image URLs — fixed, from bundle */
   private get _images() {
-    const base = this._config.scene_base_path ?? HACS_BASE_PATH
     return {
-      sky: resolveImagePath(this._config.sky_background ?? DEFAULT_IMAGES.skyBackground, base),
-      stars: resolveImagePath(this._config.stars_image ?? DEFAULT_IMAGES.stars, base),
-      clouds: resolveImagePath(this._config.clouds_image ?? DEFAULT_IMAGES.clouds, base),
-      sun: resolveImagePath(this._config.sun_image ?? DEFAULT_IMAGES.sun, base),
-      moonPath: resolveImagePath(this._config.moon_image_path ?? DEFAULT_IMAGES.moonPath, base),
+      sky: fullPath(DEFAULT_IMAGES.skyBackground),
+      stars: fullPath(DEFAULT_IMAGES.stars),
+      clouds: fullPath(DEFAULT_IMAGES.clouds),
+      sun: fullPath(DEFAULT_IMAGES.sun),
+      moonPath: fullPath(DEFAULT_IMAGES.moonPath),
     }
   }
 
-  /** Resolve the active foreground image URL */
+  /** Foreground image URL for the selected foreground number (1-based) */
   private get _activeForegroundImage(): string {
-    const base = this._config.scene_base_path ?? HACS_BASE_PATH
-    const id = this._config.active_foreground
-    const fg = id ? this._config.foregrounds.find(f => f.id === id) : undefined
-    const entry = fg ?? this._config.foregrounds[0]
-    return resolveImagePath(entry.image, base)
+    const index = (this._config.foreground ?? 1) - 1
+    const filename = FOREGROUND_IMAGES[Math.max(0, index)] ?? FOREGROUND_IMAGES[0]
+    return fullPath(filename)
   }
 
   public override render(): TemplateResult {

@@ -8,7 +8,7 @@ export const DOMAIN = 'skyfield_test'
 /** Default base path — where HACS installs the card files */
 export const HACS_BASE_PATH = '/hacsfiles/lovelace-skyfield-scenic-horizon-card/'
 
-/** Default filenames for bundled scene images, relative to HACS_BASE_PATH */
+/** Bundled scene images (sky, stars, clouds, sun, moon). Not user-configurable. */
 export const DEFAULT_IMAGES = {
   skyBackground: 'Lake_Sky_Background5.png',
   stars: 'Lake_Sky_Stars.png',
@@ -16,6 +16,15 @@ export const DEFAULT_IMAGES = {
   sun: 'sun-48190c.png',
   moonPath: 'moon/phase_{angle}.png',
 } as const
+
+/**
+ * Foreground scene filenames by number (1-based).
+ * Foreground 1 = index 0, foreground 2 = index 1, etc.
+ * Add more entries when you have more foreground images in the bundle.
+ */
+export const FOREGROUND_IMAGES: readonly string[] = [
+  'Lake_Alpha.png',  // foreground 1
+]
 
 /** Default sun width as percentage of card width */
 export const DEFAULT_SUN_SIZE = 25

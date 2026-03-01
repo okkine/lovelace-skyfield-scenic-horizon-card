@@ -1,36 +1,11 @@
-export interface ForegroundConfig {
-  id: string
-  label?: string
-  /**
-   * Foreground image: filename relative to scene_base_path, or an absolute path starting with /.
-   * Example: "Lake_Alpha.png"  →  resolved against scene_base_path
-   *          "/local/myscene/Foreground.png"  →  used as-is
-   */
-  image: string
-}
-
 export interface SkylineCardConfig {
   type: string
 
-  // Foreground scene definitions — only the foreground image changes between scenes
-  foregrounds: ForegroundConfig[]
-  active_foreground?: string
-
   /**
-   * Base URL for all bundled scene images (sky background, stars, clouds, sun, moon phases).
-   * Defaults to the HACS install location.
-   * Override if you store images elsewhere.
+   * Which foreground scene to show (1-based). Default 1.
+   * More foregrounds can be added to the card bundle later.
    */
-  scene_base_path?: string
-
-  // Optional overrides for individual shared scene images.
-  // Values are filenames relative to scene_base_path, or absolute paths.
-  sky_background?: string
-  stars_image?: string
-  clouds_image?: string
-  sun_image?: string
-  /** Path template — use {angle} as placeholder, e.g. "moon/phase_{angle}.png" */
-  moon_image_path?: string
+  foreground?: number
 
   // Optional: Skyfield location_name prefix
   location_name?: string
