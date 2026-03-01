@@ -87,8 +87,22 @@ const t={ATTRIBUTE:1},e=t=>(...e)=>({_$litDirective$:t,values:e});let i$1 = clas
 
 const CARD_TYPE = 'skyfield-scenic-horizon-card';
 const CARD_NAME = 'Skyfield Scenic Horizon Card';
-const CARD_DESCRIPTION = 'Scenic day/night landscape card driven by Skyfield sun and moon sensors.';
+const CARD_DESCRIPTION = 'Scenic day/night landscape card driven by Skyfield sun and moon sensors';
 const DOMAIN = 'skyfield_test';
+/** Default base path — where HACS installs the card files */
+const HACS_BASE_PATH = '/hacsfiles/lovelace-skyfield-scenic-horizon-card/';
+/** Default filenames for bundled scene images, relative to HACS_BASE_PATH */
+const DEFAULT_IMAGES = {
+    skyBackground: 'Lake_Sky_Background5.png',
+    stars: 'Lake_Sky_Stars.png',
+    clouds: 'Lake_Sky_Clouds.png',
+    sun: 'sun-48190c.png',
+    moonPath: 'moon/phase_{angle}.png',
+};
+/** Default sun width as percentage of card width */
+const DEFAULT_SUN_SIZE = 25;
+/** Default moon width as percentage of card width */
+const DEFAULT_MOON_SIZE = 7;
 /** Sensor name segments used to build default entity IDs */
 const SENSOR_NAMES = {
     sunElevation: 'solar_elevation',
@@ -363,6 +377,17 @@ function moonImageUrl(template, angle) {
 }
 
 const TRANSITION = r$4(CSS_TRANSITION_DURATION);
+/**
+ * Resolve an image path: if it starts with / or http it is used as-is;
+ * otherwise it is treated as a filename relative to basePath.
+ */
+function resolveImagePath(path, basePath) {
+    if (!path)
+        return '';
+    if (path.startsWith('/') || path.startsWith('http'))
+        return path;
+    return `${basePath}${path}`;
+}
 let SkylineHorizonCard = class SkylineHorizonCard extends i$2 {
     static get styles() {
         return i$5 `
@@ -376,31 +401,40 @@ let SkylineHorizonCard = class SkylineHorizonCard extends i$2 {
       ha-card {
         overflow: hidden;
         border-radius: inherit;
+        background: none;
       }
 
       .card-container {
         position: relative;
         width: 100%;
-        /* 8:3 aspect ratio default; override with CSS custom property --shc-aspect-ratio */
-        padding-bottom: var(--shc-aspect-ratio, 37.5%);
-        overflow: hidden;
+        /* Height is established by the invisible aspect-ref image below */
       }
 
+      /* Invisible image whose natural dimensions set the card aspect ratio */
+      .aspect-ref {
+        display: block;
+        width: 100%;
+        height: auto;
+        visibility: hidden;
+        pointer-events: none;
+      }
+
+      /* All scene layers sit on top of the aspect-ref, filling the container */
       .layer {
         position: absolute;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background-size: cover;
-        background-position: center top;
-        background-repeat: no-repeat;
+        object-fit: fill;
       }
 
       .layer--sky {
         z-index: 0;
+        /* Sky uses CSS background so we can scroll it vertically */
         background-size: 100% auto;
         background-repeat: no-repeat;
+        background-position-x: center;
         transition: background-position-y ${TRANSITION} ease;
       }
 
@@ -420,21 +454,17 @@ let SkylineHorizonCard = class SkylineHorizonCard extends i$2 {
         transition: filter ${TRANSITION} ease;
       }
 
+      /* Celestial bodies (sun / moon) */
       .celestial-body {
         position: absolute;
         transform: translate(-50%, -50%);
         z-index: 1;
         pointer-events: none;
+        height: auto;
         transition:
           left ${TRANSITION} ease,
           top ${TRANSITION} ease,
           opacity ${TRANSITION} ease;
-      }
-
-      .celestial-body img {
-        width: 100%;
-        height: auto;
-        display: block;
       }
 
       .moon-img {
@@ -443,17 +473,17 @@ let SkylineHorizonCard = class SkylineHorizonCard extends i$2 {
         display: block;
         mix-blend-mode: screen;
       }
+
+      .sun-img {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
     `;
     }
     setConfig(config) {
         if (!config.foregrounds || config.foregrounds.length === 0) {
             throw new Error(`${CARD_TYPE}: at least one entry under "foregrounds" is required`);
-        }
-        if (!config.sun_image) {
-            throw new Error(`${CARD_TYPE}: "sun_image" is required`);
-        }
-        if (!config.moon_image_path) {
-            throw new Error(`${CARD_TYPE}: "moon_image_path" is required — use {angle} as placeholder, e.g. /local/moon/phase_{angle}.png`);
         }
         this._config = config;
     }
@@ -464,10 +494,24 @@ let SkylineHorizonCard = class SkylineHorizonCard extends i$2 {
     get hass() {
         return this._hass;
     }
-    get activeForeground() {
+    /** Resolve all shared image URLs from config + defaults */
+    get _images() {
+        const base = this._config.scene_base_path ?? HACS_BASE_PATH;
+        return {
+            sky: resolveImagePath(this._config.sky_background ?? DEFAULT_IMAGES.skyBackground, base),
+            stars: resolveImagePath(this._config.stars_image ?? DEFAULT_IMAGES.stars, base),
+            clouds: resolveImagePath(this._config.clouds_image ?? DEFAULT_IMAGES.clouds, base),
+            sun: resolveImagePath(this._config.sun_image ?? DEFAULT_IMAGES.sun, base),
+            moonPath: resolveImagePath(this._config.moon_image_path ?? DEFAULT_IMAGES.moonPath, base),
+        };
+    }
+    /** Resolve the active foreground image URL */
+    get _activeForegroundImage() {
+        const base = this._config.scene_base_path ?? HACS_BASE_PATH;
         const id = this._config.active_foreground;
         const fg = id ? this._config.foregrounds.find(f => f.id === id) : undefined;
-        return fg ?? this._config.foregrounds[0];
+        const entry = fg ?? this._config.foregrounds[0];
+        return resolveImagePath(entry.image, base);
     }
     render() {
         if (!this._hass || !this._config)
@@ -477,91 +521,95 @@ let SkylineHorizonCard = class SkylineHorizonCard extends i$2 {
         const transitions = calcTransitions(sensors.sunElevation, sensors.declinationNormalized, this._config);
         const sceneFilter = calcSceneFilter(transitions);
         const skyPosition = calcSkyPosition(transitions);
-        const fg = this.activeForeground;
         const horizonY = this._config.horizon_y ?? 55;
+        const images = this._images;
+        const fgImage = this._activeForegroundImage;
         const sunPos = celestialPosition(sensors.sunAzimuth, sensors.sunElevation, sensors.azimuthRange, horizonY);
         const moonPos = celestialPosition(sensors.moonAzimuth, sensors.moonElevation, sensors.azimuthRange, horizonY);
-        const moonUrl = moonImageUrl(this._config.moon_image_path, sensors.moonPhaseAngle);
+        const moonUrl = moonImageUrl(images.moonPath, sensors.moonPhaseAngle);
+        const sunSize = this._config.sun_size ?? DEFAULT_SUN_SIZE;
+        const moonSize = this._config.moon_size ?? DEFAULT_MOON_SIZE;
         return b `
       <ha-card>
         <div class="card-container">
 
-          <!-- Layer 0: Sky background gradient, background-position-y scrolls through time of day -->
+          <!-- Invisible image that establishes the card's aspect ratio from the actual image -->
+          <img class="aspect-ref" src=${fgImage} alt="" />
+
+          <!-- Layer 0: Sky background — CSS background scrolls vertically through time of day -->
           <div
             class="layer layer--sky"
             style=${o({
-            backgroundImage: `url('${fg.background}')`,
+            backgroundImage: `url('${images.sky}')`,
             backgroundPositionY: skyPosition,
         })}
           ></div>
 
           <!-- Layer 1: Sun -->
-          ${this._renderSun(sunPos, sceneFilter)}
+          ${this._renderSun(sunPos, sceneFilter, images.sun, sunSize)}
 
           <!-- Layer 1: Moon -->
-          ${this._renderMoon(moonPos, moonUrl, sensors.moonParallacticAngle, transitions.stars)}
+          ${this._renderMoon(moonPos, moonUrl, sensors.moonParallacticAngle, transitions.stars, moonSize)}
 
-          <!-- Layer 2: Stars (opacity driven by twilight transition) -->
-          <div
+          <!-- Layer 2: Stars — opacity driven by twilight transition -->
+          <img
             class="layer layer--stars"
-            style=${o({
-            backgroundImage: `url('${fg.stars}')`,
-            opacity: String(transitions.stars),
-        })}
-          ></div>
+            src=${images.stars}
+            alt=""
+            style=${o({ opacity: String(transitions.stars) })}
+          />
 
-          <!-- Layer 3: Static foreground (lake scene, trees, etc.) with day/night filter -->
-          <div
+          <!-- Layer 3: Foreground scene — day/night filter applied here -->
+          <img
             class="layer layer--foreground"
-            style=${o({
-            backgroundImage: `url('${fg.foreground}')`,
-            filter: sceneFilter,
-        })}
-          ></div>
+            src=${fgImage}
+            alt=""
+            style=${o({ filter: sceneFilter })}
+          />
 
           <!-- Layer 3: Clouds overlay -->
-          <div
+          <img
             class="layer layer--clouds"
-            style=${o({ backgroundImage: `url('${fg.clouds}')` })}
-          ></div>
+            src=${images.clouds}
+            alt=""
+          />
 
         </div>
       </ha-card>
     `;
     }
-    _renderSun(pos, filter) {
+    _renderSun(pos, filter, sunImage, size) {
         return b `
-      <div
-        class="celestial-body"
+      <img
+        class="celestial-body sun-img"
+        src=${sunImage}
+        alt="Sun"
         style=${o({
             left: `${pos.x}%`,
             top: `${pos.y}%`,
-            width: '7%',
+            width: `${size}%`,
             filter,
         })}
-      >
-        <img src=${this._config.sun_image} alt="Sun" />
-      </div>
+      />
     `;
     }
-    _renderMoon(pos, imageUrl, parallacticAngle, starsOpacity) {
-        // Moon is visible when it's in the sky area and it's dark enough to see
+    _renderMoon(pos, imageUrl, parallacticAngle, starsOpacity, size) {
         const moonVisible = pos.y >= 0 && pos.y <= 100;
         const moonOpacity = moonVisible ? Math.max(starsOpacity, 0.15) : 0;
         return b `
-      <div
-        class="celestial-body"
+      <img
+        class="celestial-body moon-img"
+        src=${imageUrl}
+        alt="Moon"
         style=${o({
             left: `${pos.x}%`,
             top: `${pos.y}%`,
-            width: '7%',
+            width: `${size}%`,
             opacity: String(moonOpacity),
             transform: `translate(-50%, -50%) rotate(${parallacticAngle}deg)`,
             transformOrigin: '50% 50%',
         })}
-      >
-        <img class="moon-img" src=${imageUrl} alt="Moon" />
-      </div>
+      />
     `;
     }
     getCardSize() {
