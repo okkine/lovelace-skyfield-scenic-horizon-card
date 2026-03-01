@@ -91,7 +91,7 @@ const CARD_DESCRIPTION = 'Scenic day/night landscape card driven by Skyfield sun
 const DOMAIN = 'skyfield_test';
 /** Default base path — where HACS installs the card files */
 const HACS_BASE_PATH = '/hacsfiles/lovelace-skyfield-scenic-horizon-card/';
-/** Default filenames for bundled scene images, relative to HACS_BASE_PATH */
+/** Bundled scene images (sky, stars, clouds, sun, moon). Not user-configurable. */
 const DEFAULT_IMAGES = {
     skyBackground: 'Lake_Sky_Background5.png',
     stars: 'Lake_Sky_Stars.png',
@@ -99,6 +99,14 @@ const DEFAULT_IMAGES = {
     sun: 'sun-48190c.png',
     moonPath: 'moon/phase_{angle}.png',
 };
+/**
+ * Foreground scene filenames by number (1-based).
+ * Foreground 1 = index 0, foreground 2 = index 1, etc.
+ * Add more entries when you have more foreground images in the bundle.
+ */
+const FOREGROUND_IMAGES = [
+    'Lake_Alpha.png', // foreground 1
+];
 /** Default sun width as percentage of card width */
 const DEFAULT_SUN_SIZE = 25;
 /** Default moon width as percentage of card width */
@@ -377,16 +385,8 @@ function moonImageUrl(template, angle) {
 }
 
 const TRANSITION = r$4(CSS_TRANSITION_DURATION);
-/**
- * Resolve an image path: if it starts with / or http it is used as-is;
- * otherwise it is treated as a filename relative to basePath.
- */
-function resolveImagePath(path, basePath) {
-    if (!path)
-        return '';
-    if (path.startsWith('/') || path.startsWith('http'))
-        return path;
-    return `${basePath}${path}`;
+function fullPath(filename) {
+    return `${HACS_BASE_PATH}${filename}`;
 }
 let SkylineHorizonCard = class SkylineHorizonCard extends i$2 {
     static get styles() {
@@ -482,10 +482,8 @@ let SkylineHorizonCard = class SkylineHorizonCard extends i$2 {
     `;
     }
     setConfig(config) {
-        if (!config.foregrounds || config.foregrounds.length === 0) {
-            throw new Error(`${CARD_TYPE}: at least one entry under "foregrounds" is required`);
-        }
-        this._config = config;
+        const n = Math.max(1, Math.min(config.foreground ?? 1, FOREGROUND_IMAGES.length));
+        this._config = { ...config, foreground: n };
     }
     set hass(hass) {
         this._hass = hass;
@@ -494,24 +492,21 @@ let SkylineHorizonCard = class SkylineHorizonCard extends i$2 {
     get hass() {
         return this._hass;
     }
-    /** Resolve all shared image URLs from config + defaults */
+    /** All scene image URLs — fixed, from bundle */
     get _images() {
-        const base = this._config.scene_base_path ?? HACS_BASE_PATH;
         return {
-            sky: resolveImagePath(this._config.sky_background ?? DEFAULT_IMAGES.skyBackground, base),
-            stars: resolveImagePath(this._config.stars_image ?? DEFAULT_IMAGES.stars, base),
-            clouds: resolveImagePath(this._config.clouds_image ?? DEFAULT_IMAGES.clouds, base),
-            sun: resolveImagePath(this._config.sun_image ?? DEFAULT_IMAGES.sun, base),
-            moonPath: resolveImagePath(this._config.moon_image_path ?? DEFAULT_IMAGES.moonPath, base),
+            sky: fullPath(DEFAULT_IMAGES.skyBackground),
+            stars: fullPath(DEFAULT_IMAGES.stars),
+            clouds: fullPath(DEFAULT_IMAGES.clouds),
+            sun: fullPath(DEFAULT_IMAGES.sun),
+            moonPath: fullPath(DEFAULT_IMAGES.moonPath),
         };
     }
-    /** Resolve the active foreground image URL */
+    /** Foreground image URL for the selected foreground number (1-based) */
     get _activeForegroundImage() {
-        const base = this._config.scene_base_path ?? HACS_BASE_PATH;
-        const id = this._config.active_foreground;
-        const fg = id ? this._config.foregrounds.find(f => f.id === id) : undefined;
-        const entry = fg ?? this._config.foregrounds[0];
-        return resolveImagePath(entry.image, base);
+        const index = (this._config.foreground ?? 1) - 1;
+        const filename = FOREGROUND_IMAGES[Math.max(0, index)] ?? FOREGROUND_IMAGES[0];
+        return fullPath(filename);
     }
     render() {
         if (!this._hass || !this._config)
