@@ -367,24 +367,24 @@ function calcSceneFilter(transitions) {
 /**
  * Calculate the background-position-y value for the sky gradient layer.
  *
- * Returns a percentage (0–100%) to use with CSS background-position-y.
- * 0% = top of the image (night sky), 50% = middle (day colours),
- * 100% = bottom of the image.
+ * The sky gradient image is laid out top-to-bottom as:
+ *   0%  — night (dark navy)
+ *   ~20% — golden hour / sunset glow
+ *   ~45% — full daytime blue
+ *   ~65% — golden hour / sunrise glow
+ *   ~85% — pale morning
  *
- * The sky value from calcTransitions mirrors pyscript's circadian_sky range:
- *   negative → evening/morning (above-centre portion of image)
- *   0        → midday (centre portion)
- *   positive → twilight/night (below-centre portion ... wraps around image)
+ * Sunset path scrolls straight UP: day (45%) → golden hour (20%) → night (0%).
+ * Sunrise is the reverse. No direction reversal needed.
  *
- * We map this to a background-position-y that scrolls the sky gradient image.
- * The user may need to tweak this to match their specific sky image layout.
+ * Combined progress 0→1 from full day to full night:
+ *   evening 0→1 contributes the first 40%  (day → golden hour peak)
+ *   twilight 0→1 contributes the remaining 60% (golden hour → night)
  */
 function calcSkyPosition(transitions) {
-    // Map pyscript sky range (roughly −200 to +400) to 0–100% background-position-y.
-    // Centre of the image (50%) = midday. Negative sky shifts toward morning (below 50%).
-    // Positive sky shifts toward night (above 50%, wrapping through night colours).
-    const rawSky = transitions.sky; // already in pyscript scale (−200 to ~400)
-    const pct = clamp(50 - rawSky / 8, 0, 100);
+    const { evening, twilight } = transitions;
+    const progress = evening * 0.4 + twilight * 0.6;
+    const pct = 45 * (1 - progress);
     return `${pct.toFixed(1)}%`;
 }
 /**
