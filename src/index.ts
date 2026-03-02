@@ -19,7 +19,7 @@ import { resolveEntities, readSensors } from './sensors'
 import {
   calcTransitions,
   calcSceneFilter,
-  calcSkyPosition,
+  calcSkyGradient,
   celestialPosition,
   moonImageUrl,
 } from './transitions'
@@ -83,10 +83,6 @@ export class SkylineHorizonCard extends LitElement {
 
       .layer--sky {
         z-index: 0;
-        background-size: 100% auto;
-        background-repeat: no-repeat;
-        background-position-x: center;
-        transition: background-position-y ${TRANSITION} ease;
       }
 
       .layer--stars {
@@ -176,7 +172,7 @@ export class SkylineHorizonCard extends LitElement {
       this._config
     )
     const sceneFilter = calcSceneFilter(transitions, this._config)
-    const skyPosition = calcSkyPosition(transitions)
+    const skyGradient = calcSkyGradient(transitions)
     const horizonY = this._config.horizon_y ?? 30
     const images = this._images
     const fgImage = this._activeForegroundImage
@@ -206,13 +202,10 @@ export class SkylineHorizonCard extends LitElement {
           <!-- Invisible image that establishes the card's aspect ratio from the actual image -->
           <img class="aspect-ref" src=${fgImage} alt="" />
 
-          <!-- Layer 0: Sky background scrolls vertically through time of day -->
+          <!-- Layer 0: Sky gradient transitions through day / golden hour / night -->
           <div
             class="layer layer--sky"
-            style=${styleMap({
-              backgroundImage: `url('${images.sky}')`,
-              backgroundPositionY: skyPosition,
-            })}
+            style=${styleMap({ background: skyGradient })}
           ></div>
 
           <!-- Layer 1: Sun -->
