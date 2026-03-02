@@ -84,25 +84,25 @@ export function calcTransitions(
 export function calcSceneFilter(transitions: TransitionValues): string {
   const { evening, twilight } = transitions
 
-  // brightness: 1.0 (day) → 0.85 (golden) → 0.45 (civil twilight) → 0.12 (night)
-  const brightDay = 1.0
+  // brightness: 1.0 (day) → 0.85 (golden hour) → 0.45 (civil twilight) → 0.20 (night)
+  // Night value matched visually to Lake_Alpha_Night.png
+  const brightDay    = 1.0
   const brightGolden = 0.85
-  const brightCivil = 0.45
-  const brightNight = 0.12
+  const brightCivil  = 0.45
+  const brightNight  = 0.20
   let brightness: number
   if (twilight < 0.5) {
-    // Day → civil twilight boundary
-    const t = twilight * 2  // 0→1 over first half
+    const t = twilight * 2
     brightness = lerp(lerp(brightDay, brightGolden, evening), brightCivil, t)
   } else {
-    // Civil twilight → night
     brightness = lerp(brightCivil, brightNight, (twilight - 0.5) * 2)
   }
 
-  // saturation: 1.0 (day) → 1.4 (golden hour) → 0.6 (civil) → 0.25 (night)
-  const satGolden = 1.4
-  const satCivil = 0.6
-  const satNight = 0.25
+  // saturation: 1.0 (day) → 1.3 (golden hour) → 0.85 (civil) → 0.70 (night)
+  // Colors retain their hue at night (lake stays blue, trees stay dark green)
+  const satGolden = 1.3
+  const satCivil  = 0.85
+  const satNight  = 0.70
   let saturation: number
   if (twilight < 0.5) {
     const t = twilight * 2
@@ -111,21 +111,18 @@ export function calcSceneFilter(transitions: TransitionValues): string {
     saturation = lerp(satCivil, satNight, (twilight - 0.5) * 2)
   }
 
-  // hue-rotate: 0° (day) → 0° (golden, sepia handles warmth) → 200° (civil) → 230° (night)
-  const hueCivil = 200
-  const hueNight = 230
-  const hue = twilight < 0.5
-    ? lerp(0, hueCivil, twilight * 2)
-    : lerp(hueCivil, hueNight, (twilight - 0.5) * 2)
-
-  // sepia: 0 (day) → 0.2 (golden hour) → 0 (civil twilight onwards)
-  const sepia = clamp(evening * 0.2 - twilight * 0.4, 0, 0.2)
+  // contrast: 1.0 (day) → 1.05 (golden) → 1.05 (civil) → 1.10 (night)
+  // Slight contrast boost at night to keep dark areas properly dark
+  const contrastGolden = 1.05
+  const contrastNight  = 1.10
+  const contrast = twilight < 0.5
+    ? lerp(lerp(1.0, contrastGolden, evening), contrastGolden, twilight * 2)
+    : lerp(contrastGolden, contrastNight, (twilight - 0.5) * 2)
 
   return [
     `brightness(${brightness.toFixed(3)})`,
     `saturate(${saturation.toFixed(3)})`,
-    `hue-rotate(${hue.toFixed(1)}deg)`,
-    `sepia(${sepia.toFixed(3)})`,
+    `contrast(${contrast.toFixed(3)})`,
   ].join(' ')
 }
 
