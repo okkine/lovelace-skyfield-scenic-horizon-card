@@ -220,7 +220,7 @@ export class SkylineHorizonCard extends LitElement {
           ${this._renderSun(sunPos, sceneFilter, images.sun, sunSize)}
 
           <!-- Layer 1: Moon -->
-          ${this._renderMoon(moonPos, moonUrl, sensors.moonParallacticAngle, transitions.stars, moonSize)}
+          ${this._renderMoon(moonPos, moonUrl, sensors.moonParallacticAngle, moonSize)}
 
           <!-- Layer 2: Stars — opacity driven by twilight transition -->
           <img
@@ -275,12 +275,8 @@ export class SkylineHorizonCard extends LitElement {
     pos: CelestialPosition,
     imageUrl: string,
     parallacticAngle: number,
-    starsOpacity: number,
     size: number
   ): TemplateResult {
-    const moonVisible = pos.y >= 0 && pos.y <= 100
-    const moonOpacity = moonVisible ? Math.max(starsOpacity, 0.15) : 0
-
     return html`
       <img
         class="celestial-body moon-img"
@@ -290,7 +286,6 @@ export class SkylineHorizonCard extends LitElement {
           left: `${pos.x}%`,
           top: `${pos.y}%`,
           width: `${size}%`,
-          opacity: String(moonOpacity),
           transform: `translate(-50%, -50%) rotate(${parallacticAngle}deg)`,
           transformOrigin: '50% 50%',
         })}
