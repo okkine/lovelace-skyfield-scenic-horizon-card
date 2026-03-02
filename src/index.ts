@@ -83,9 +83,10 @@ export class SkylineHorizonCard extends LitElement {
 
       .layer--sky {
         z-index: 0;
-        height: auto;
-        object-fit: unset;
-        transition: top ${TRANSITION} ease;
+        background-size: 100% auto;
+        background-repeat: no-repeat;
+        background-position-x: center;
+        transition: background-position-y ${TRANSITION} ease;
       }
 
       .layer--stars {
@@ -205,13 +206,14 @@ export class SkylineHorizonCard extends LitElement {
           <!-- Invisible image that establishes the card's aspect ratio from the actual image -->
           <img class="aspect-ref" src=${fgImage} alt="" />
 
-          <!-- Layer 0: Sky background — positioned absolutely, top slides to show day/night portion -->
-          <img
+          <!-- Layer 0: Sky background scrolls vertically through time of day -->
+          <div
             class="layer layer--sky"
-            src=${images.sky}
-            alt=""
-            style=${styleMap({ top: skyPosition })}
-          />
+            style=${styleMap({
+              backgroundImage: `url('${images.sky}')`,
+              backgroundPositionY: skyPosition,
+            })}
+          ></div>
 
           <!-- Layer 1: Sun -->
           ${this._renderSun(sunPos, sceneFilter, images.sun, sunSize)}

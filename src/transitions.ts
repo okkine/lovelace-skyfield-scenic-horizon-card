@@ -81,15 +81,18 @@ export function calcTransitions(
  *   Civil twilight (twilight 0→0.5) → blue-grey shift, dimming begins
  *   Nautical twilight (twilight 0.5→1) → deep blue, near-dark
  */
-export function calcSceneFilter(transitions: TransitionValues): string {
+export function calcSceneFilter(
+  transitions: TransitionValues,
+  config: { min_brightness?: number; max_contrast?: number }
+): string {
   const { evening, twilight } = transitions
+  const brightNight = config.min_brightness ?? 0.35
+  const contrastNight = config.max_contrast ?? 1.3
 
-  // brightness: 1.0 (day) → 0.85 (golden hour) → 0.45 (civil twilight) → 0.20 (night)
-  // Night value matched visually to Lake_Alpha_Night.png
+  // brightness: 1.0 (day) → 0.85 (golden hour) → 0.45 (civil twilight) → brightNight (night)
   const brightDay    = 1.0
   const brightGolden = 0.85
   const brightCivil  = 0.45
-  const brightNight  = 0.20
   let brightness: number
   if (twilight < 0.5) {
     const t = twilight * 2
@@ -99,7 +102,6 @@ export function calcSceneFilter(transitions: TransitionValues): string {
   }
 
   // saturation: 1.0 (day) → 1.3 (golden hour) → 0.85 (civil) → 0.70 (night)
-  // Colors retain their hue at night (lake stays blue, trees stay dark green)
   const satGolden = 1.3
   const satCivil  = 0.85
   const satNight  = 0.70
@@ -111,10 +113,9 @@ export function calcSceneFilter(transitions: TransitionValues): string {
     saturation = lerp(satCivil, satNight, (twilight - 0.5) * 2)
   }
 
-  // contrast: 1.0 (day) → 1.1 (golden) → 1.4 (civil) → 1.8 (night)
+  // contrast: 1.0 (day) → 1.1 (golden) → 1.4 (civil) → contrastNight (night)
   const contrastGolden = 1.1
   const contrastCivil  = 1.4
-  const contrastNight  = 1.8
   const contrast = twilight < 0.5
     ? lerp(lerp(1.0, contrastGolden, evening), contrastCivil, twilight * 2)
     : lerp(contrastCivil, contrastNight, (twilight - 0.5) * 2)
@@ -129,24 +130,19 @@ export function calcSceneFilter(transitions: TransitionValues): string {
 /**
  * Calculate the background-position-y value for the sky gradient layer.
  *
- * The sky gradient image is laid out top-to-bottom as:
- *   0%  — night (dark navy)
- *   ~20% — golden hour / sunset glow
- *   ~45% — full daytime blue
- *   ~65% — golden hour / sunrise glow
- *   ~85% — pale morning
+ * The sky gradient image layout (top to bottom):
+ *   0%  — full night (dark navy)
+ *   ~20% — upper golden hour / sunset glow
+ *   ~45% — full daytime blue sky
  *
- * Sunset path scrolls straight UP: day (45%) → golden hour (20%) → night (0%).
- * Sunrise is the reverse. No direction reversal needed.
- *
- * Combined progress 0→1 from full day to full night:
- *   evening 0→1 contributes the first 40%  (day → golden hour peak)
- *   twilight 0→1 contributes the remaining 60% (golden hour → night)
+ * Scroll path for sunset:
+ *   Full day   (evening=0, twilight=0) → 45%  (showing daytime blue)
+ *   Golden hr  (evening=1, twilight=0) → 20%  (showing sunset glow)
+ *   Full night (evening=1, twilight=1) → 0%   (showing dark navy)
  */
 export function calcSkyPosition(transitions: TransitionValues): string {
   const { evening, twilight } = transitions
-  const progress = evening * 0.4 + twilight * 0.6
-  const pct = 45 * (1 - progress)
+  const pct = lerp(lerp(45, 20, evening), 0, twilight)
   return `${pct.toFixed(1)}%`
 }
 

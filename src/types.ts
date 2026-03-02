@@ -42,6 +42,11 @@ export interface SkylineCardConfig {
   // Seasonal evening threshold elevation (degrees)
   evening_elev_summer?: number
   evening_elev_winter?: number
+
+  /** Minimum brightness at full night (0–1). Default 0.20 */
+  min_brightness?: number
+  /** Maximum contrast at full night. Default 1.8 */
+  max_contrast?: number
 }
 
 export interface ResolvedEntities {
