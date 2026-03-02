@@ -483,11 +483,9 @@ let SkylineHorizonCard = class SkylineHorizonCard extends i$2 {
 
       .layer--sky {
         z-index: 0;
-        /* Sky uses CSS background so we can scroll it vertically */
-        background-size: 100% auto;
-        background-repeat: no-repeat;
-        background-position-x: center;
-        transition: background-position-y ${TRANSITION} ease;
+        height: auto;
+        object-fit: unset;
+        transition: top ${TRANSITION} ease;
       }
 
       .layer--stars {
@@ -566,7 +564,7 @@ let SkylineHorizonCard = class SkylineHorizonCard extends i$2 {
         const entities = resolveEntities(this._config);
         const sensors = readSensors(this._hass, entities, this._config);
         const transitions = calcTransitions(sensors.sunElevation, sensors.declinationNormalized, this._config);
-        const sceneFilter = calcSceneFilter(transitions);
+        const sceneFilter = calcSceneFilter(transitions, this._config);
         const skyPosition = calcSkyPosition(transitions);
         const horizonY = this._config.horizon_y ?? 30;
         const images = this._images;
@@ -583,14 +581,13 @@ let SkylineHorizonCard = class SkylineHorizonCard extends i$2 {
           <!-- Invisible image that establishes the card's aspect ratio from the actual image -->
           <img class="aspect-ref" src=${fgImage} alt="" />
 
-          <!-- Layer 0: Sky background — CSS background scrolls vertically through time of day -->
-          <div
+          <!-- Layer 0: Sky background — positioned absolutely, top slides to show day/night portion -->
+          <img
             class="layer layer--sky"
-            style=${o({
-            backgroundImage: `url('${images.sky}')`,
-            backgroundPositionY: skyPosition,
-        })}
-          ></div>
+            src=${images.sky}
+            alt=""
+            style=${o({ top: skyPosition })}
+          />
 
           <!-- Layer 1: Sun -->
           ${this._renderSun(sunPos, sceneFilter, images.sun, sunSize)}
