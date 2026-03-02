@@ -362,23 +362,56 @@ function calcSceneFilter(transitions, config) {
         `contrast(${contrast.toFixed(3)})`,
     ].join(' ');
 }
+/** Interpolate between two RGB colour stops and return a CSS rgb() string. */
+function lerpColor(c1, c2, t) {
+    const r = Math.round(lerp(c1[0], c2[0], t));
+    const g = Math.round(lerp(c1[1], c2[1], t));
+    const b = Math.round(lerp(c1[2], c2[2], t));
+    return `rgb(${r},${g},${b})`;
+}
 /**
- * Calculate the background-position-y value for the sky gradient layer.
- *
- * The sky gradient image layout (top to bottom):
- *   0%  — full night (dark navy)
- *   ~20% — upper golden hour / sunset glow
- *   ~45% — full daytime blue sky
- *
- * Scroll path for sunset:
- *   Full day   (evening=0, twilight=0) → 45%  (showing daytime blue)
- *   Golden hr  (evening=1, twilight=0) → 20%  (showing sunset glow)
- *   Full night (evening=1, twilight=1) → 0%   (showing dark navy)
+ * Sky colour key-stops for each transition stage.
+ * Two stops per state: zenith (top of sky) and horizon (bottom edge of sky layer).
+ * Colours sampled from the original Lake_Sky_Background5.png at matching elevations.
  */
-function calcSkyPosition(transitions) {
+const SKY = {
+    dayTop: [30, 120, 195], // deep daytime blue
+    dayHorizon: [130, 200, 235], // light hazy blue at horizon
+    goldenTop: [35, 22, 68], // dark purple-navy zenith at golden hour
+    goldenHorizon: [223, 134, 102], // warm orange-salmon at horizon (from image)
+    civilTop: [10, 22, 68], // dark navy at civil twilight zenith
+    civilHorizon: [60, 40, 78], // muted mauve at horizon
+    nightTop: [13, 32, 75], // deep navy (from image night section)
+    nightHorizon: [15, 28, 72], // nearly identical — flat night
+};
+/**
+ * Compute a CSS linear-gradient string for the sky layer from current transitions.
+ *
+ * Progression:
+ *   Day           (evening=0, twilight=0) → blue sky top, light-blue horizon
+ *   Golden hour   (evening=1, twilight=0) → dark purple top, warm-orange horizon
+ *   Civil twilight (twilight 0→0.5)       → lerp toward dark navy / mauve
+ *   Night          (twilight 0.5→1)       → deep flat navy
+ */
+function calcSkyGradient(transitions) {
     const { evening, twilight } = transitions;
-    const pct = lerp(lerp(45, 20, evening), 0, twilight);
-    return `${pct.toFixed(1)}%`;
+    let top;
+    let horizon;
+    if (twilight === 0) {
+        top = lerpColor(SKY.dayTop, SKY.goldenTop, evening);
+        horizon = lerpColor(SKY.dayHorizon, SKY.goldenHorizon, evening);
+    }
+    else if (twilight < 0.5) {
+        const t = twilight * 2;
+        top = lerpColor(SKY.goldenTop, SKY.civilTop, t);
+        horizon = lerpColor(SKY.goldenHorizon, SKY.civilHorizon, t);
+    }
+    else {
+        const t = (twilight - 0.5) * 2;
+        top = lerpColor(SKY.civilTop, SKY.nightTop, t);
+        horizon = lerpColor(SKY.civilHorizon, SKY.nightHorizon, t);
+    }
+    return `linear-gradient(to bottom, ${top} 0%, ${horizon} 100%)`;
 }
 /**
  * Map a celestial body's azimuth and elevation to x/y percentages within the card.
@@ -476,10 +509,6 @@ let SkylineHorizonCard = class SkylineHorizonCard extends i$2 {
 
       .layer--sky {
         z-index: 0;
-        background-size: 100% auto;
-        background-repeat: no-repeat;
-        background-position-x: center;
-        transition: background-position-y ${TRANSITION} ease;
       }
 
       .layer--stars {
@@ -559,7 +588,7 @@ let SkylineHorizonCard = class SkylineHorizonCard extends i$2 {
         const sensors = readSensors(this._hass, entities, this._config);
         const transitions = calcTransitions(sensors.sunElevation, sensors.declinationNormalized, this._config);
         const sceneFilter = calcSceneFilter(transitions, this._config);
-        const skyPosition = calcSkyPosition(transitions);
+        const skyGradient = calcSkyGradient(transitions);
         const horizonY = this._config.horizon_y ?? 30;
         const images = this._images;
         const fgImage = this._activeForegroundImage;
@@ -575,13 +604,10 @@ let SkylineHorizonCard = class SkylineHorizonCard extends i$2 {
           <!-- Invisible image that establishes the card's aspect ratio from the actual image -->
           <img class="aspect-ref" src=${fgImage} alt="" />
 
-          <!-- Layer 0: Sky background scrolls vertically through time of day -->
+          <!-- Layer 0: Sky gradient transitions through day / golden hour / night -->
           <div
             class="layer layer--sky"
-            style=${o({
-            backgroundImage: `url('${images.sky}')`,
-            backgroundPositionY: skyPosition,
-        })}
+            style=${o({ background: skyGradient })}
           ></div>
 
           <!-- Layer 1: Sun -->
