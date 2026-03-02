@@ -83,11 +83,9 @@ export class SkylineHorizonCard extends LitElement {
 
       .layer--sky {
         z-index: 0;
-        /* Sky uses CSS background so we can scroll it vertically */
-        background-size: 100% auto;
-        background-repeat: no-repeat;
-        background-position-x: center;
-        transition: background-position-y ${TRANSITION} ease;
+        height: auto;
+        object-fit: unset;
+        transition: top ${TRANSITION} ease;
       }
 
       .layer--stars {
@@ -176,7 +174,7 @@ export class SkylineHorizonCard extends LitElement {
       sensors.declinationNormalized,
       this._config
     )
-    const sceneFilter = calcSceneFilter(transitions)
+    const sceneFilter = calcSceneFilter(transitions, this._config)
     const skyPosition = calcSkyPosition(transitions)
     const horizonY = this._config.horizon_y ?? 30
     const images = this._images
@@ -207,14 +205,13 @@ export class SkylineHorizonCard extends LitElement {
           <!-- Invisible image that establishes the card's aspect ratio from the actual image -->
           <img class="aspect-ref" src=${fgImage} alt="" />
 
-          <!-- Layer 0: Sky background — CSS background scrolls vertically through time of day -->
-          <div
+          <!-- Layer 0: Sky background — positioned absolutely, top slides to show day/night portion -->
+          <img
             class="layer layer--sky"
-            style=${styleMap({
-              backgroundImage: `url('${images.sky}')`,
-              backgroundPositionY: skyPosition,
-            })}
-          ></div>
+            src=${images.sky}
+            alt=""
+            style=${styleMap({ top: skyPosition })}
+          />
 
           <!-- Layer 1: Sun -->
           ${this._renderSun(sunPos, sceneFilter, images.sun, sunSize)}
