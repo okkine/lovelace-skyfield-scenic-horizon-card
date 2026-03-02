@@ -111,13 +111,13 @@ export function calcSceneFilter(transitions: TransitionValues): string {
     saturation = lerp(satCivil, satNight, (twilight - 0.5) * 2)
   }
 
-  // contrast: 1.0 (day) → 1.05 (golden) → 1.05 (civil) → 1.10 (night)
-  // Slight contrast boost at night to keep dark areas properly dark
-  const contrastGolden = 1.05
-  const contrastNight  = 1.10
+  // contrast: 1.0 (day) → 1.1 (golden) → 1.4 (civil) → 1.8 (night)
+  const contrastGolden = 1.1
+  const contrastCivil  = 1.4
+  const contrastNight  = 1.8
   const contrast = twilight < 0.5
-    ? lerp(lerp(1.0, contrastGolden, evening), contrastGolden, twilight * 2)
-    : lerp(contrastGolden, contrastNight, (twilight - 0.5) * 2)
+    ? lerp(lerp(1.0, contrastGolden, evening), contrastCivil, twilight * 2)
+    : lerp(contrastCivil, contrastNight, (twilight - 0.5) * 2)
 
   return [
     `brightness(${brightness.toFixed(3)})`,
