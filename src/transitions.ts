@@ -89,36 +89,34 @@ export function calcSceneFilter(
   const brightNight = config.min_brightness ?? 0.35
   const contrastNight = config.max_contrast ?? 1.3
 
-  // brightness: 1.0 (day) → 0.85 (golden hour) → 0.45 (civil twilight) → brightNight (night)
+  // Apply x^0.6 curve (matches original lake_alpha_night pyscript formula).
+  // Rises quickly early, then eases — fast initial darkening, slow approach to full night.
+  const eveC = Math.pow(evening, 0.6)
+
   const brightDay    = 1.0
   const brightGolden = 0.85
   const brightCivil  = 0.45
-  let brightness: number
-  if (twilight < 0.5) {
-    const t = twilight * 2
-    brightness = lerp(lerp(brightDay, brightGolden, evening), brightCivil, t)
-  } else {
-    brightness = lerp(brightCivil, brightNight, (twilight - 0.5) * 2)
-  }
-
-  // saturation: 1.0 (day) → 1.3 (golden hour) → 0.85 (civil) → 0.70 (night)
-  const satGolden = 1.3
-  const satCivil  = 0.85
-  const satNight  = 0.70
-  let saturation: number
-  if (twilight < 0.5) {
-    const t = twilight * 2
-    saturation = lerp(lerp(1.0, satGolden, evening), satCivil, t)
-  } else {
-    saturation = lerp(satCivil, satNight, (twilight - 0.5) * 2)
-  }
-
-  // contrast: 1.0 (day) → 1.1 (golden) → 1.4 (civil) → contrastNight (night)
+  const satGolden    = 1.3
+  const satCivil     = 0.85
+  const satNight     = 0.70
   const contrastGolden = 1.1
   const contrastCivil  = 1.4
-  const contrast = twilight < 0.5
-    ? lerp(lerp(1.0, contrastGolden, evening), contrastCivil, twilight * 2)
-    : lerp(contrastCivil, contrastNight, (twilight - 0.5) * 2)
+
+  let brightness: number
+  let saturation: number
+  let contrast: number
+
+  if (twilight < 0.5) {
+    const tC = Math.pow(twilight * 2, 0.6)
+    brightness = lerp(lerp(brightDay, brightGolden, eveC), brightCivil, tC)
+    saturation = lerp(lerp(1.0,       satGolden,    eveC), satCivil,    tC)
+    contrast   = lerp(lerp(1.0,       contrastGolden, eveC), contrastCivil, tC)
+  } else {
+    const tC = Math.pow((twilight - 0.5) * 2, 0.6)
+    brightness = lerp(brightCivil,   brightNight,   tC)
+    saturation = lerp(satCivil,      satNight,      tC)
+    contrast   = lerp(contrastCivil, contrastNight, tC)
+  }
 
   return [
     `brightness(${brightness.toFixed(3)})`,
@@ -173,14 +171,16 @@ const SKY: Record<string, readonly [number, number, number]> = {
  */
 export function calcSkyGradient(transitions: TransitionValues): string {
   const { evening, twilight } = transitions
+  // x^0.6 curve on evening so the sky colour shifts quickly early in golden hour
+  const eveC = Math.pow(evening, 0.6)
   let top: string
   let mid: string
   let bottom: string
 
   if (twilight === 0) {
-    top    = lerpColor(SKY.dayTop,    SKY.goldenTop,    evening)
-    mid    = lerpColor(SKY.dayMid,    SKY.goldenMid,    evening)
-    bottom = lerpColor(SKY.dayBottom, SKY.goldenBottom, evening)
+    top    = lerpColor(SKY.dayTop,    SKY.goldenTop,    eveC)
+    mid    = lerpColor(SKY.dayMid,    SKY.goldenMid,    eveC)
+    bottom = lerpColor(SKY.dayBottom, SKY.goldenBottom, eveC)
   } else if (twilight < 0.5) {
     const t = twilight * 2
     top    = lerpColor(SKY.goldenTop,    SKY.civilTop,    t)
