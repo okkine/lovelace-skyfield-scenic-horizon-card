@@ -145,14 +145,21 @@ function lerpColor(
  * Colours sampled from the original Lake_Sky_Background5.png at matching elevations.
  */
 const SKY: Record<string, readonly [number, number, number]> = {
-  dayTop:          [ 80, 200, 250],  // light cyan-sky blue
-  dayHorizon:      [140, 225, 230],  // light blue-green at horizon
+  dayTop:          [ 80, 200, 250],  // light cyan-sky blue at zenith
+  dayMid:          [140, 225, 230],  // light blue-green at midpoint
+  dayBottom:       [200, 250, 210],  // extrapolated pale aqua at bottom
+
   goldenTop:       [205,  85,  50],  // bright warm orange-red at zenith
-  goldenHorizon:   [238, 155, 110],  // light peach at horizon
-  civilTop:        [ 30,  15,  70],  // deep indigo at civil twilight zenith
-  civilHorizon:    [ 88,  42, 128],  // vivid purple at horizon
-  nightTop:        [  8,  10,  40],  // near-black navy
-  nightHorizon:    [ 12,  15,  50],  // very dark navy
+  goldenMid:       [238, 155, 110],  // light peach at midpoint
+  goldenBottom:    [255, 225, 170],  // extrapolated pale warm yellow at bottom
+
+  civilTop:        [ 30,  15,  70],  // deep indigo at zenith
+  civilMid:        [ 88,  42, 128],  // vivid purple at midpoint
+  civilBottom:     [146,  69, 186],  // extrapolated lighter purple at bottom
+
+  nightTop:        [  8,  10,  40],  // near-black navy at zenith
+  nightMid:        [ 12,  15,  50],  // very dark navy at midpoint
+  nightBottom:     [ 16,  20,  60],  // extrapolated slightly lighter navy at bottom
 }
 
 /**
@@ -167,22 +174,26 @@ const SKY: Record<string, readonly [number, number, number]> = {
 export function calcSkyGradient(transitions: TransitionValues): string {
   const { evening, twilight } = transitions
   let top: string
-  let horizon: string
+  let mid: string
+  let bottom: string
 
   if (twilight === 0) {
-    top     = lerpColor(SKY.dayTop,        SKY.goldenTop,      evening)
-    horizon = lerpColor(SKY.dayHorizon,    SKY.goldenHorizon,  evening)
+    top    = lerpColor(SKY.dayTop,    SKY.goldenTop,    evening)
+    mid    = lerpColor(SKY.dayMid,    SKY.goldenMid,    evening)
+    bottom = lerpColor(SKY.dayBottom, SKY.goldenBottom, evening)
   } else if (twilight < 0.5) {
     const t = twilight * 2
-    top     = lerpColor(SKY.goldenTop,     SKY.civilTop,       t)
-    horizon = lerpColor(SKY.goldenHorizon, SKY.civilHorizon,   t)
+    top    = lerpColor(SKY.goldenTop,    SKY.civilTop,    t)
+    mid    = lerpColor(SKY.goldenMid,    SKY.civilMid,    t)
+    bottom = lerpColor(SKY.goldenBottom, SKY.civilBottom, t)
   } else {
     const t = (twilight - 0.5) * 2
-    top     = lerpColor(SKY.civilTop,      SKY.nightTop,       t)
-    horizon = lerpColor(SKY.civilHorizon,  SKY.nightHorizon,   t)
+    top    = lerpColor(SKY.civilTop,    SKY.nightTop,    t)
+    mid    = lerpColor(SKY.civilMid,    SKY.nightMid,    t)
+    bottom = lerpColor(SKY.civilBottom, SKY.nightBottom, t)
   }
 
-  return `linear-gradient(to bottom, ${top} 0%, ${horizon} 100%)`
+  return `linear-gradient(to bottom, ${top} 0%, ${mid} 50%, ${bottom} 100%)`
 }
 
 /**
