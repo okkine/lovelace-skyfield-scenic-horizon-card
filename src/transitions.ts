@@ -145,8 +145,8 @@ function lerpColor(
  * Colours sampled from the original Lake_Sky_Background5.png at matching elevations.
  */
 const SKY: Record<string, readonly [number, number, number]> = {
-  dayTop:          [ 95, 195, 232],  // light cyan-sky blue
-  dayHorizon:      [210, 240, 255],  // very light white-blue at horizon
+  dayTop:          [ 80, 200, 250],  // light cyan-sky blue
+  dayHorizon:      [140, 225, 230],  // light blue-green at horizon
   goldenTop:       [205,  85,  50],  // bright warm orange-red at zenith
   goldenHorizon:   [238, 155, 110],  // light peach at horizon
   civilTop:        [ 30,  15,  70],  // deep indigo at civil twilight zenith
