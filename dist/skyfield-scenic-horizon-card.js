@@ -376,7 +376,7 @@ function lerpColor(c1, c2, t) {
  */
 const SKY = {
     dayTop: [95, 195, 232], // light cyan-sky blue
-    dayHorizon: [150, 225, 250], // near-white pale blue at horizon
+    dayHorizon: [210, 240, 255], // very light white-blue at horizon
     goldenTop: [205, 85, 50], // bright warm orange-red at zenith
     goldenHorizon: [238, 155, 110], // light peach at horizon
     civilTop: [30, 15, 70], // deep indigo at civil twilight zenith
