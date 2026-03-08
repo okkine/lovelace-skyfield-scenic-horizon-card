@@ -92,12 +92,12 @@ export class SkylineHorizonCard extends LitElement {
       }
 
       .layer--clouds {
-        z-index: 3;
+        z-index: 5;
         mix-blend-mode: overlay;
       }
 
       .layer--foreground {
-        z-index: 3;
+        z-index: 4;
         transition: filter ${TRANSITION} ease;
       }
 
@@ -119,6 +119,7 @@ export class SkylineHorizonCard extends LitElement {
         height: auto;
         display: block;
         mix-blend-mode: screen;
+        z-index: 3;
       }
 
       .sun-img {
@@ -195,6 +196,17 @@ export class SkylineHorizonCard extends LitElement {
     const sunSize = this._config.sun_size ?? DEFAULT_SUN_SIZE
     const moonSize = this._config.moon_size ?? DEFAULT_MOON_SIZE
 
+    // Moon mask for stars layer: punch a moon-shaped hole in the stars using the
+    // moon image's alpha channel so stars don't bleed through the moon disk.
+    // The moon image is square (128×128); the card aspect ratio is 3000/1029 ≈ 2.916,
+    // so the rendered moon height as % of card height = moonSize × (3000/1029).
+    const moonHeightPct = moonSize * (3000 / 1029)
+    const moonMaskPos = [
+      `calc(${moonPos.x.toFixed(3)}% - ${(moonSize / 2).toFixed(3)}%)`,
+      `calc(${moonPos.y.toFixed(3)}% - ${(moonHeightPct / 2).toFixed(3)}%)`,
+    ].join(' ')
+    const moonMaskSize = `${moonSize}% ${moonHeightPct.toFixed(3)}%`
+
     return html`
       <ha-card>
         <div class="card-container">
@@ -214,12 +226,20 @@ export class SkylineHorizonCard extends LitElement {
           <!-- Layer 1: Moon -->
           ${this._renderMoon(moonPos, moonUrl, sensors.moonParallacticAngle, moonSize)}
 
-          <!-- Layer 2: Stars — opacity driven by twilight transition -->
+          <!-- Layer 2: Stars — opacity driven by twilight; moon alpha punches a hole -->
           <img
             class="layer layer--stars"
             src=${images.stars}
             alt=""
-            style=${styleMap({ opacity: String(transitions.stars) })}
+            style=${styleMap({
+              opacity: String(transitions.stars),
+              maskImage: `url('${moonUrl}'), linear-gradient(white, white)`,
+              maskSize: `${moonMaskSize}, 100% 100%`,
+              maskPosition: `${moonMaskPos}, 0% 0%`,
+              maskComposite: 'exclude, add',
+              maskRepeat: 'no-repeat, no-repeat',
+              maskMode: 'alpha, alpha',
+            })}
           />
 
           <!-- Layer 3: Foreground scene — day/night filter applied here -->
