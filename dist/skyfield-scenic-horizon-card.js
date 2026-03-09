@@ -411,7 +411,7 @@ function calcSkyGradient(transitions) {
         mid = lerpColor(SKY.civilMid, SKY.nightMid, t);
         bottom = lerpColor(SKY.civilBottom, SKY.nightBottom, t);
     }
-    return `linear-gradient(to bottom, ${top} 0%, ${mid} 50%, ${bottom} 100%)`;
+    return `linear-gradient(to bottom, ${top} 0%, ${mid} 60%, ${bottom} 100%)`;
 }
 /**
  * Map a celestial body's azimuth and elevation to x/y percentages within the card.
