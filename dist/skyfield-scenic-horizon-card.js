@@ -151,9 +151,6 @@ const ELEVATION = {
     GOLDEN_HOUR_START: 6, // above this → full day
     TWILIGHT_START: 0, // civil twilight begins
     TWILIGHT_END: -12};
-/** Default evening threshold elevations (seasonal – pyscript circadian_evening_day) */
-const EVENING_ELEV_SUMMER = 15; // degrees, near summer solstice
-const EVENING_ELEV_WINTER = 10; // degrees, near winter solstice
 /** CSS transition duration applied to all animated layer properties */
 const CSS_TRANSITION_DURATION = '60s';
 
@@ -291,17 +288,10 @@ function normalize(value, fromMin, fromMax) {
  *   circadian_stars:    star layer opacity (appears in second half of twilight)
  *   sky:                vertical offset for sky background layer (percentage)
  */
-function calcTransitions(sunElevation, declinationNormalized, config) {
-    const eveningSummer = config.evening_elev_summer ?? EVENING_ELEV_SUMMER;
-    const eveningWinter = config.evening_elev_winter ?? EVENING_ELEV_WINTER;
-    // Seasonal evening threshold: interpolate between winter and summer values.
-    // declinationNormalized: −1 = December solstice, +1 = June solstice → remap to [0, 1]
-    const seasonT = clamp((declinationNormalized + 1) / 2, 0, 1);
-    const eveningDay = lerp(eveningWinter, eveningSummer, seasonT);
-    const eveningNight = ELEVATION.GOLDEN_HOUR_START; // 5° (matches pyscript circadian_evening_night)
-    // circadian_evening: 0 = full day (sun at or above eveningDay),
-    //                    1 = sun has reached eveningNight (5°)
-    const evening = normalize(sunElevation, eveningDay, eveningNight);
+function calcTransitions(sunElevation, _declinationNormalized, _config) {
+    // evening: 0 = full day (sun at or above 6°), 1 = sun at horizon (0°)
+    // Fixed range 6° → 0°; no seasonal shift.
+    const evening = normalize(sunElevation, ELEVATION.GOLDEN_HOUR_START, ELEVATION.TWILIGHT_START);
     // circadian_twilight: 0 = sun at horizon (0°), 1 = full night (−12°)
     const twilight = normalize(sunElevation, ELEVATION.TWILIGHT_START, ELEVATION.TWILIGHT_END);
     // Stars: appear between twilight 0.5 (−6°) and 1 (−12°), curved with x^0.6
