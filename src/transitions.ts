@@ -145,8 +145,8 @@ const SKY: Record<string, readonly [number, number, number]> = {
   goldenBottom:    [238, 155, 110],  // extrapolated pale warm yellow at bottom
 
   civilTop:        [ 30,  15,  70],  // deep indigo at zenith
-  civilMid:        [ 238, 155, 110],  // vivid purple at midpoint
-  civilBottom:     [255, 225, 170],  // extrapolated lighter purple at bottom
+  civilMid:        [238, 75, 40],  // vivid purple at midpoint
+  civilBottom:     [238, 75, 40],  // extrapolated lighter purple at bottom
 
   nightTop:        [  8,  10,  40],  // near-black navy at zenith
   nightMid:        [ 12,  15,  50],  // very dark navy at midpoint
