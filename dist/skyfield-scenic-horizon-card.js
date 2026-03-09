@@ -372,8 +372,8 @@ const SKY = {
     goldenMid: [238, 155, 110], // light peach at midpoint
     goldenBottom: [255, 225, 170], // extrapolated pale warm yellow at bottom
     civilTop: [30, 15, 70], // deep indigo at zenith
-    civilMid: [88, 42, 128], // vivid purple at midpoint
-    civilBottom: [205, 85, 50], // extrapolated lighter purple at bottom
+    civilMid: [238, 155, 110], // vivid purple at midpoint
+    civilBottom: [255, 225, 170], // extrapolated lighter purple at bottom
     nightTop: [8, 10, 40], // near-black navy at zenith
     nightMid: [12, 15, 50], // very dark navy at midpoint
     nightBottom: [16, 20, 60], // extrapolated slightly lighter navy at bottom
