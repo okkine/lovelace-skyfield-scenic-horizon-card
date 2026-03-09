@@ -304,8 +304,9 @@ function calcTransitions(sunElevation, declinationNormalized, config) {
     const evening = normalize(sunElevation, eveningDay, eveningNight);
     // circadian_twilight: 0 = sun at horizon (0°), 1 = full night (−12°)
     const twilight = normalize(sunElevation, ELEVATION.TWILIGHT_START, ELEVATION.TWILIGHT_END);
-    // Stars: appear in the second half of twilight progression
-    const stars = clamp((twilight - 0.5) * 2, 0, 1);
+    // Stars: appear between twilight 0.5 (−6°) and 1 (−12°), curved with x^0.6
+    // so they emerge quickly early in nautical twilight then ease to full opacity
+    const stars = Math.pow(clamp((twilight - 0.5) * 2, 0, 1), 0.6);
     // Sky background position — mirrors pyscript circadian_sky:
     //   combined = (evening/2 + twilight/2) * 400
     //   if twilight == 0 (daytime): negate (morning/evening position above centre)
@@ -326,32 +327,18 @@ function calcSceneFilter(transitions, config) {
     const { evening, twilight } = transitions;
     const brightNight = config.min_brightness ?? 0.35;
     const contrastNight = config.max_contrast ?? 1.3;
-    // Apply x^0.6 curve (matches original lake_alpha_night pyscript formula).
-    // Rises quickly early, then eases — fast initial darkening, slow approach to full night.
+    // x^0.6 on evening (day→golden hour) and on twilight (0°→-12°, single ramp).
     const eveC = Math.pow(evening, 0.6);
+    const twilC = Math.pow(twilight, 0.6);
+    // Foreground starts at whatever golden-hour level was reached, then ramps to night.
     const brightDay = 1.0;
     const brightGolden = 0.85;
-    const brightCivil = 0.45;
     const satGolden = 1.3;
-    const satCivil = 0.85;
     const satNight = 0.70;
     const contrastGolden = 1.1;
-    const contrastCivil = 1.4;
-    let brightness;
-    let saturation;
-    let contrast;
-    if (twilight < 0.5) {
-        const tC = Math.pow(twilight * 2, 0.6);
-        brightness = lerp(lerp(brightDay, brightGolden, eveC), brightCivil, tC);
-        saturation = lerp(lerp(1.0, satGolden, eveC), satCivil, tC);
-        contrast = lerp(lerp(1.0, contrastGolden, eveC), contrastCivil, tC);
-    }
-    else {
-        const tC = Math.pow((twilight - 0.5) * 2, 0.6);
-        brightness = lerp(brightCivil, brightNight, tC);
-        saturation = lerp(satCivil, satNight, tC);
-        contrast = lerp(contrastCivil, contrastNight, tC);
-    }
+    const brightness = lerp(lerp(brightDay, brightGolden, eveC), brightNight, twilC);
+    const saturation = lerp(lerp(1.0, satGolden, eveC), satNight, twilC);
+    const contrast = lerp(lerp(1.0, contrastGolden, eveC), contrastNight, twilC);
     return [
         `brightness(${brightness.toFixed(3)})`,
         `saturate(${saturation.toFixed(3)})`,
