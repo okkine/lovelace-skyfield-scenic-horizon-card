@@ -358,13 +358,30 @@ function lerpColor(c1, c2, t) {
  * Colours sampled from the original Lake_Sky_Background5.png at matching elevations.
  */
 const SKY = {
+    /**
+    dayTop:          [ 80, 200, 250],  // light cyan-sky blue at zenith
+    dayMid:          [140, 225, 230],  // light blue-green at midpoint
+    dayBottom:       [200, 250, 210],  // extrapolated pale aqua at bottom
+  
+    goldenTop:       [205,  85,  50],  // bright warm orange-red at zenith
+    goldenMid:       [238, 155, 110],  // light peach at midpoint
+    goldenBottom:    [255, 225, 170],  // extrapolated pale warm yellow at bottom
+  
+    civilTop:        [ 30,  15,  70],  // deep indigo at zenith
+    civilMid:        [ 88,  42, 128],  // vivid purple at midpoint
+    civilBottom:     [146,  69, 186],  // extrapolated lighter purple at bottom
+  
+    nightTop:        [  8,  10,  40],  // near-black navy at zenith
+    nightMid:        [ 12,  15,  50],  // very dark navy at midpoint
+    nightBottom:     [ 16,  20,  60],  // extrapolated slightly lighter navy at bottom
+    */
     dayTop: [80, 200, 250], // light cyan-sky blue at zenith
     dayMid: [140, 225, 230], // light blue-green at midpoint
     dayBottom: [200, 250, 210], // extrapolated pale aqua at bottom
-    goldenTop: [205, 85, 50], // bright warm orange-red at zenith
+    goldenTop: [80, 200, 250], // bright warm orange-red at zenith
     goldenMid: [238, 155, 110], // light peach at midpoint
     goldenBottom: [255, 225, 170], // extrapolated pale warm yellow at bottom
-    civilTop: [30, 15, 70], // deep indigo at zenith
+    civilTop: [205, 85, 50], // deep indigo at zenith
     civilMid: [88, 42, 128], // vivid purple at midpoint
     civilBottom: [146, 69, 186], // extrapolated lighter purple at bottom
     nightTop: [8, 10, 40], // near-black navy at zenith
