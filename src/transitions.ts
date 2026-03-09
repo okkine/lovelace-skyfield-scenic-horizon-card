@@ -187,7 +187,7 @@ export function calcSkyGradient(transitions: TransitionValues): string {
     bottom = lerpColor(SKY.civilBottom, SKY.nightBottom, t)
   }
 
-  return `linear-gradient(to bottom, ${top} 0%, ${mid} 50%, ${bottom} 100%)`
+  return `linear-gradient(to bottom, ${top} 0%, ${mid} 60%, ${bottom} 100%)`
 }
 
 /**
