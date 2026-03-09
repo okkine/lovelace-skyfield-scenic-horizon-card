@@ -1,11 +1,9 @@
 import {
   ELEVATION,
-  EVENING_ELEV_SUMMER,
-  EVENING_ELEV_WINTER,
   DEFAULT_HORIZON_Y,
   FALLBACK_MAX_ELEVATION,
 } from './constants'
-import type { SkylineCardConfig, TransitionValues, CelestialPosition } from './types'
+import type { TransitionValues, CelestialPosition } from './types'
 import type { AzimuthRange } from './sensors'
 
 /** Clamp a value between min and max */
@@ -41,21 +39,12 @@ function normalize(value: number, fromMin: number, fromMax: number): number {
  */
 export function calcTransitions(
   sunElevation: number,
-  declinationNormalized: number,
-  config: SkylineCardConfig
+  _declinationNormalized: number,
+  _config: unknown
 ): TransitionValues {
-  const eveningSummer = config.evening_elev_summer ?? EVENING_ELEV_SUMMER
-  const eveningWinter = config.evening_elev_winter ?? EVENING_ELEV_WINTER
-
-  // Seasonal evening threshold: interpolate between winter and summer values.
-  // declinationNormalized: −1 = December solstice, +1 = June solstice → remap to [0, 1]
-  const seasonT = clamp((declinationNormalized + 1) / 2, 0, 1)
-  const eveningDay = lerp(eveningWinter, eveningSummer, seasonT)
-  const eveningNight = ELEVATION.GOLDEN_HOUR_START  // 5° (matches pyscript circadian_evening_night)
-
-  // circadian_evening: 0 = full day (sun at or above eveningDay),
-  //                    1 = sun has reached eveningNight (5°)
-  const evening = normalize(sunElevation, eveningDay, eveningNight)
+  // evening: 0 = full day (sun at or above 6°), 1 = sun at horizon (0°)
+  // Fixed range 6° → 0°; no seasonal shift.
+  const evening = normalize(sunElevation, ELEVATION.GOLDEN_HOUR_START, ELEVATION.TWILIGHT_START)
 
   // circadian_twilight: 0 = sun at horizon (0°), 1 = full night (−12°)
   const twilight = normalize(sunElevation, ELEVATION.TWILIGHT_START, ELEVATION.TWILIGHT_END)
