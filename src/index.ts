@@ -59,6 +59,7 @@ export class SkylineHorizonCard extends LitElement {
       .card-container {
         position: relative;
         width: 100%;
+        isolation: isolate;
         /* Height is established by the invisible aspect-ref image below */
       }
 
