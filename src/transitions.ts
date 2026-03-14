@@ -115,8 +115,8 @@ function lerpColor(
 
 /**
  * Sky colour key-stops for each transition stage.
- * Two stops per state: zenith (top of sky) and horizon (bottom edge of sky layer).
- * Colours sampled from the original Lake_Sky_Background5.png at matching elevations.
+ * Two stops: zenith (top, 0%) and bottom (40% down the card).
+ * The gradient is solid below 40%.
  */
 const SKY: Record<string, readonly [number, number, number]> = {
   /**
@@ -136,21 +136,17 @@ const SKY: Record<string, readonly [number, number, number]> = {
   nightMid:        [ 12,  15,  50],  // very dark navy at midpoint
   nightBottom:     [ 16,  20,  60],  // extrapolated slightly lighter navy at bottom
   */
-  dayTop:          [ 80, 200, 250],  // light cyan-sky blue at zenith
-  dayMid:          [140, 225, 230],  // light blue-green at midpoint
-  dayBottom:       [200, 250, 210],  // extrapolated pale aqua at bottom
+  dayTop:       [ 80, 200, 250],  // light cyan-sky blue at zenith
+  dayBottom:    [140, 225, 230],  // light blue-green at 40%
 
-  goldenTop:       [80, 200, 250],  // bright warm orange-red at zenith
-  goldenMid:       [205,  85,  50],  // light peach at midpoint
-  goldenBottom:    [238, 155, 110],  // extrapolated pale warm yellow at bottom
+  goldenTop:    [ 80, 200, 250],  // zenith at golden hour
+  goldenBottom: [238, 155, 110],  // warm peach at 40%
 
-  civilTop:        [ 30,  15,  70],  // deep indigo at zenith
-  civilMid:        [238, 75, 40],  // vivid purple at midpoint
-  civilBottom:     [238, 75, 40],  // extrapolated lighter purple at bottom
+  civilTop:     [ 12,  28,  65],  // deep indigo at zenith
+  civilBottom:  [238,  102,  12],  // vivid orange-red at 40%
 
-  nightTop:        [  8,  10,  40],  // near-black navy at zenith
-  nightMid:        [ 12,  15,  50],  // very dark navy at midpoint
-  nightBottom:     [ 16,  20,  60],  // extrapolated slightly lighter navy at bottom
+  nightTop:     [ 12,  28,  65],  // near-black navy at zenith
+  nightBottom:  [ 12,  28,  80],  // flat night at 40%
 
 }
 
@@ -168,26 +164,22 @@ export function calcSkyGradient(transitions: TransitionValues): string {
   // x^0.6 curve on evening so the sky colour shifts quickly early in golden hour
   const eveC = Math.pow(evening, 0.6)
   let top: string
-  let mid: string
   let bottom: string
 
   if (twilight === 0) {
     top    = lerpColor(SKY.dayTop,    SKY.goldenTop,    eveC)
-    mid    = lerpColor(SKY.dayMid,    SKY.goldenMid,    eveC)
     bottom = lerpColor(SKY.dayBottom, SKY.goldenBottom, eveC)
   } else if (twilight < 0.5) {
     const t = twilight * 2
     top    = lerpColor(SKY.goldenTop,    SKY.civilTop,    t)
-    mid    = lerpColor(SKY.goldenMid,    SKY.civilMid,    t)
     bottom = lerpColor(SKY.goldenBottom, SKY.civilBottom, t)
   } else {
     const t = (twilight - 0.5) * 2
     top    = lerpColor(SKY.civilTop,    SKY.nightTop,    t)
-    mid    = lerpColor(SKY.civilMid,    SKY.nightMid,    t)
     bottom = lerpColor(SKY.civilBottom, SKY.nightBottom, t)
   }
 
-  return `linear-gradient(to bottom, ${top} 0%, ${mid} 60%, ${bottom} 100%)`
+  return `linear-gradient(to bottom, ${top} 0%, ${bottom} 40%)`
 }
 
 /**
