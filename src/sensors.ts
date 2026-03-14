@@ -47,6 +47,13 @@ export function getNumericState(hass: HomeAssistant, entityId: string, fallback:
   return isNaN(value) ? fallback : value
 }
 
+/** Safely read a sensor state as a string, returning null on failure */
+function getStringState(hass: HomeAssistant, entityId: string): string | null {
+  const state = hass.states[entityId]
+  if (!state || !state.state) return null
+  return state.state
+}
+
 /** Safely read a numeric attribute, returning a fallback on failure */
 export function getNumericAttribute(
   hass: HomeAssistant,
@@ -81,8 +88,18 @@ export function getAzimuthRange(
   const moonRiseAz = getNumericAttribute(hass, entities.moonrise, 'rise_azimuth', NaN)
   const moonSetAz  = getNumericAttribute(hass, entities.moonset,  'set_azimuth',  NaN)
 
-  const hasSun  = !isNaN(sunRiseAz)  && !isNaN(sunSetAz)
-  const hasMoon = !isNaN(moonRiseAz) && !isNaN(moonSetAz)
+  const hasSun  = !isNaN(sunRiseAz) && !isNaN(sunSetAz)
+
+  // If moonset occurs before moonrise on the same calendar day, the set event
+  // happened before tonight's rise — the moon's arc hasn't started yet.
+  // Exclude the moon from range calculation to avoid an inverted/backwards arc.
+  const moonRiseTime = getStringState(hass, entities.moonrise)
+  const moonSetTime  = getStringState(hass, entities.moonset)
+  const moonSetBeforeRise = (moonRiseTime !== null && moonSetTime !== null)
+    ? new Date(moonSetTime) < new Date(moonRiseTime)
+    : false
+
+  const hasMoon = !isNaN(moonRiseAz) && !isNaN(moonSetAz) && !moonSetBeforeRise
 
   if (hasSun || hasMoon) {
     const candidates = [

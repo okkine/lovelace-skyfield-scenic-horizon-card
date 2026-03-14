@@ -81,8 +81,22 @@ export class SkylineHorizonCard extends LitElement {
         object-fit: fill;
       }
 
+      @property --sky-top {
+        syntax: '<color>';
+        inherits: false;
+        initial-value: rgb(80, 200, 250);
+      }
+
+      @property --sky-bottom {
+        syntax: '<color>';
+        inherits: false;
+        initial-value: rgb(140, 225, 230);
+      }
+
       .layer--sky {
         z-index: 0;
+        background: linear-gradient(to bottom, var(--sky-top) 0%, var(--sky-bottom) 40%);
+        transition: --sky-top ${TRANSITION} ease, --sky-bottom ${TRANSITION} ease;
       }
 
       .layer--stars {
@@ -173,7 +187,7 @@ export class SkylineHorizonCard extends LitElement {
       this._config
     )
     const sceneFilter = calcSceneFilter(transitions, this._config)
-    const skyGradient = calcSkyGradient(transitions)
+    const skyColors = calcSkyGradient(transitions)
     const horizonY = this._config.horizon_y ?? 30
     const images = this._images
     const fgImage = this._activeForegroundImage
@@ -214,10 +228,10 @@ export class SkylineHorizonCard extends LitElement {
           <!-- Invisible image that establishes the card's aspect ratio from the actual image -->
           <img class="aspect-ref" src=${fgImage} alt="" />
 
-          <!-- Layer 0: Sky gradient transitions through day / golden hour / night -->
+          <!-- Layer 0: Sky gradient — colours transition via CSS @property -->
           <div
             class="layer layer--sky"
-            style=${styleMap({ background: skyGradient })}
+            style=${styleMap({ '--sky-top': skyColors.top, '--sky-bottom': skyColors.bottom })}
           ></div>
 
           <!-- Layer 1: Sun -->

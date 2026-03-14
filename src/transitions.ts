@@ -51,7 +51,7 @@ export function calcTransitions(
 
   // Stars: appear between twilight 0.5 (−6°) and 1 (−12°), curved with x^0.6
   // so they emerge quickly early in nautical twilight then ease to full opacity
-  const stars = Math.pow(clamp((twilight - 0.5) * 2, 0, 1), 0.6)
+  const stars = Math.pow(clamp((twilight - 0.5) * 2, 0, 1), 1 / 0.6)
 
   // Sky background position — mirrors pyscript circadian_sky:
   //   combined = (evening/2 + twilight/2) * 400
@@ -159,7 +159,7 @@ const SKY: Record<string, readonly [number, number, number]> = {
  *   Civil twilight (twilight 0→0.5)       → lerp toward dark navy / mauve
  *   Night          (twilight 0.5→1)       → deep flat navy
  */
-export function calcSkyGradient(transitions: TransitionValues): string {
+export function calcSkyGradient(transitions: TransitionValues): { top: string; bottom: string } {
   const { evening, twilight } = transitions
   // x^0.6 curve on evening so the sky colour shifts quickly early in golden hour
   const eveC = Math.pow(evening, 0.6)
@@ -179,7 +179,7 @@ export function calcSkyGradient(transitions: TransitionValues): string {
     bottom = lerpColor(SKY.civilBottom, SKY.nightBottom, t)
   }
 
-  return `linear-gradient(to bottom, ${top} 0%, ${bottom} 40%)`
+  return { top, bottom }
 }
 
 /**
