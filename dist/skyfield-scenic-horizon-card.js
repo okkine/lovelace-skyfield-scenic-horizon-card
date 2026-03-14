@@ -191,6 +191,13 @@ function getNumericState(hass, entityId, fallback) {
     const value = parseFloat(state.state);
     return isNaN(value) ? fallback : value;
 }
+/** Safely read a sensor state as a string, returning null on failure */
+function getStringState(hass, entityId) {
+    const state = hass.states[entityId];
+    if (!state || !state.state)
+        return null;
+    return state.state;
+}
 /** Safely read a numeric attribute, returning a fallback on failure */
 function getNumericAttribute(hass, entityId, attribute, fallback) {
     const state = hass.states[entityId];
@@ -211,7 +218,15 @@ function getAzimuthRange(hass, entities, config) {
     const moonRiseAz = getNumericAttribute(hass, entities.moonrise, 'rise_azimuth', NaN);
     const moonSetAz = getNumericAttribute(hass, entities.moonset, 'set_azimuth', NaN);
     const hasSun = !isNaN(sunRiseAz) && !isNaN(sunSetAz);
-    const hasMoon = !isNaN(moonRiseAz) && !isNaN(moonSetAz);
+    // If moonset occurs before moonrise on the same calendar day, the set event
+    // happened before tonight's rise — the moon's arc hasn't started yet.
+    // Exclude the moon from range calculation to avoid an inverted/backwards arc.
+    const moonRiseTime = getStringState(hass, entities.moonrise);
+    const moonSetTime = getStringState(hass, entities.moonset);
+    const moonSetBeforeRise = (moonRiseTime !== null && moonSetTime !== null)
+        ? new Date(moonSetTime) < new Date(moonRiseTime)
+        : false;
+    const hasMoon = !isNaN(moonRiseAz) && !isNaN(moonSetAz) && !moonSetBeforeRise;
     if (hasSun || hasMoon) {
         const candidates = [
             hasSun ? sunRiseAz : Infinity,
@@ -296,7 +311,7 @@ function calcTransitions(sunElevation, _declinationNormalized, _config) {
     const twilight = normalize(sunElevation, ELEVATION.TWILIGHT_START, ELEVATION.TWILIGHT_END);
     // Stars: appear between twilight 0.5 (−6°) and 1 (−12°), curved with x^0.6
     // so they emerge quickly early in nautical twilight then ease to full opacity
-    const stars = Math.pow(clamp((twilight - 0.5) * 2, 0, 1), 0.6);
+    const stars = Math.pow(clamp((twilight - 0.5) * 2, 0, 1), 1 / 0.6);
     // Sky background position — mirrors pyscript circadian_sky:
     //   combined = (evening/2 + twilight/2) * 400
     //   if twilight == 0 (daytime): negate (morning/evening position above centre)
@@ -403,7 +418,7 @@ function calcSkyGradient(transitions) {
         top = lerpColor(SKY.civilTop, SKY.nightTop, t);
         bottom = lerpColor(SKY.civilBottom, SKY.nightBottom, t);
     }
-    return `linear-gradient(to bottom, ${top} 0%, ${bottom} 40%)`;
+    return { top, bottom };
 }
 /**
  * Map a celestial body's azimuth and elevation to x/y percentages within the card.
@@ -499,8 +514,22 @@ let SkylineHorizonCard = class SkylineHorizonCard extends i$2 {
         object-fit: fill;
       }
 
+      @property --sky-top {
+        syntax: '<color>';
+        inherits: false;
+        initial-value: rgb(80, 200, 250);
+      }
+
+      @property --sky-bottom {
+        syntax: '<color>';
+        inherits: false;
+        initial-value: rgb(140, 225, 230);
+      }
+
       .layer--sky {
         z-index: 0;
+        background: linear-gradient(to bottom, var(--sky-top) 0%, var(--sky-bottom) 40%);
+        transition: --sky-top ${TRANSITION} ease, --sky-bottom ${TRANSITION} ease;
       }
 
       .layer--stars {
@@ -581,7 +610,7 @@ let SkylineHorizonCard = class SkylineHorizonCard extends i$2 {
         const sensors = readSensors(this._hass, entities, this._config);
         const transitions = calcTransitions(sensors.sunElevation, sensors.declinationNormalized, this._config);
         const sceneFilter = calcSceneFilter(transitions, this._config);
-        const skyGradient = calcSkyGradient(transitions);
+        const skyColors = calcSkyGradient(transitions);
         const horizonY = this._config.horizon_y ?? 30;
         const images = this._images;
         const fgImage = this._activeForegroundImage;
@@ -607,10 +636,10 @@ let SkylineHorizonCard = class SkylineHorizonCard extends i$2 {
           <!-- Invisible image that establishes the card's aspect ratio from the actual image -->
           <img class="aspect-ref" src=${fgImage} alt="" />
 
-          <!-- Layer 0: Sky gradient transitions through day / golden hour / night -->
+          <!-- Layer 0: Sky gradient — colours transition via CSS @property -->
           <div
             class="layer layer--sky"
-            style=${o({ background: skyGradient })}
+            style=${o({ '--sky-top': skyColors.top, '--sky-bottom': skyColors.bottom })}
           ></div>
 
           <!-- Layer 1: Sun -->
