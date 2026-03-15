@@ -88,7 +88,7 @@ const t={ATTRIBUTE:1},e=t=>(...e)=>({_$litDirective$:t,values:e});let i$1 = clas
 const CARD_TYPE = 'skyfield-scenic-horizon-card';
 const CARD_NAME = 'Skyfield Scenic Horizon Card';
 const CARD_DESCRIPTION = 'Scenic day/night landscape card driven by Skyfield sun and moon sensors';
-const DOMAIN = 'skyfield_test';
+const DOMAIN = 'sol';
 /** Default base path — where HACS installs the card files */
 const HACS_BASE_PATH = '/hacsfiles/lovelace-skyfield-scenic-horizon-card/';
 /** Bundled scene images (sky, stars, clouds, sun, moon). Not user-configurable. */
@@ -111,21 +111,21 @@ const FOREGROUND_IMAGES = [
 const DEFAULT_SUN_SIZE = 25;
 /** Default moon width as percentage of card width */
 const DEFAULT_MOON_SIZE = 7;
-/** Sensor name segments used to build default entity IDs */
+/** Sensor name segments used to build default entity IDs (Sol integration) */
 const SENSOR_NAMES = {
-    sunElevation: 'solar_elevation',
-    sunAzimuth: 'solar_azimuth',
-    moonElevation: 'lunar_elevation',
-    moonAzimuth: 'lunar_azimuth',
-    moonPhaseAngle: 'lunar_phase_angle',
-    moonParallacticAngle: 'lunar_parallactic_angle',
+    sunElevation: 'sun_elevation',
+    sunAzimuth: 'sun_azimuth',
+    moonElevation: 'moon_elevation',
+    moonAzimuth: 'moon_azimuth',
+    moonPhaseAngle: 'moon_phase_angle',
+    moonParallacticAngle: 'moon_parallactic_angle',
     sunrise: 'sunrise',
     sunset: 'sunset',
     moonrise: 'moonrise',
     moonset: 'moonset',
-    sunTransit: 'solar_transit',
-    moonTransit: 'lunar_transit',
-    declinationNormalized: 'solar_declination_normalized',
+    sunTransit: 'sun_transit',
+    moonTransit: 'moon_transit',
+    declinationNormalized: 'declination_normalized',
 };
 /**
  * Default azimuth range when sunrise/sunset azimuth attributes are not available.
@@ -156,8 +156,8 @@ const CSS_TRANSITION_DURATION = '60s';
 
 /**
  * Build the default entity ID for a sensor given an optional location_name prefix.
- * e.g. location_name="calgary" → sensor.skyfield_test_calgary_solar_elevation
- *      location_name=undefined  → sensor.skyfield_test_solar_elevation
+ * e.g. location_name="calgary" → sensor.sol_calgary_sun_elevation
+ *      location_name=undefined  → sensor.sol_sun_elevation
  */
 function defaultEntityId(sensorKey, locationName) {
     const name = SENSOR_NAMES[sensorKey];
