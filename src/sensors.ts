@@ -10,8 +10,8 @@ import type { SkylineCardConfig, ResolvedEntities } from './types'
 
 /**
  * Build the default entity ID for a sensor given an optional location_name prefix.
- * e.g. location_name="calgary" → sensor.skyfield_test_calgary_solar_elevation
- *      location_name=undefined  → sensor.skyfield_test_solar_elevation
+ * e.g. location_name="calgary" → sensor.sol_calgary_sun_elevation
+ *      location_name=undefined  → sensor.sol_sun_elevation
  */
 function defaultEntityId(sensorKey: keyof typeof SENSOR_NAMES, locationName?: string): string {
   const name = SENSOR_NAMES[sensorKey]

@@ -3,7 +3,7 @@ export const CARD_NAME = 'Skyfield Scenic Horizon Card'
 export const CARD_DESCRIPTION =
   'Scenic day/night landscape card driven by Skyfield sun and moon sensors'
 
-export const DOMAIN = 'skyfield_test'
+export const DOMAIN = 'sol'
 
 /** Default base path — where HACS installs the card files */
 export const HACS_BASE_PATH = '/hacsfiles/lovelace-skyfield-scenic-horizon-card/'
@@ -32,21 +32,21 @@ export const DEFAULT_SUN_SIZE = 25
 /** Default moon width as percentage of card width */
 export const DEFAULT_MOON_SIZE = 7
 
-/** Sensor name segments used to build default entity IDs */
+/** Sensor name segments used to build default entity IDs (Sol integration) */
 export const SENSOR_NAMES = {
-  sunElevation: 'solar_elevation',
-  sunAzimuth: 'solar_azimuth',
-  moonElevation: 'lunar_elevation',
-  moonAzimuth: 'lunar_azimuth',
-  moonPhaseAngle: 'lunar_phase_angle',
-  moonParallacticAngle: 'lunar_parallactic_angle',
+  sunElevation: 'sun_elevation',
+  sunAzimuth: 'sun_azimuth',
+  moonElevation: 'moon_elevation',
+  moonAzimuth: 'moon_azimuth',
+  moonPhaseAngle: 'moon_phase_angle',
+  moonParallacticAngle: 'moon_parallactic_angle',
   sunrise: 'sunrise',
   sunset: 'sunset',
   moonrise: 'moonrise',
   moonset: 'moonset',
-  sunTransit: 'solar_transit',
-  moonTransit: 'lunar_transit',
-  declinationNormalized: 'solar_declination_normalized',
+  sunTransit: 'sun_transit',
+  moonTransit: 'moon_transit',
+  declinationNormalized: 'declination_normalized',
 } as const
 
 /**
