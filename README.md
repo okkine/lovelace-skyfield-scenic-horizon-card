@@ -102,6 +102,8 @@ foreground: 1
 | `azimuth_max` | number | `300` | Fallback right-edge azimuth |
 | `evening_elev_summer` | number | `15` | Sun elevation (°) where evening starts at summer solstice |
 | `evening_elev_winter` | number | `10` | Sun elevation (°) where evening starts at winter solstice |
+| `min_brightness` | number | `0.2` | Minimum brightness at full night (0–1) for foreground filter |
+| `max_contrast` | number | `1.8` | Maximum contrast at full night for foreground filter |
 
 Entity ID overrides (optional): `sun_elevation_entity`, `sun_azimuth_entity`, `moon_elevation_entity`, `moon_azimuth_entity`, `moon_phase_angle_entity`, `moon_parallactic_angle_entity`, `sunrise_entity`, `sunset_entity`, `declination_normalized_entity`.
 

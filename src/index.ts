@@ -192,24 +192,28 @@ export class SkylineHorizonCard extends LitElement {
     const horizonY = this._config.horizon_y ?? 30
     const images = this._images
     const fgImage = this._activeForegroundImage
+    const sunSize = this._config.sun_size ?? DEFAULT_SUN_SIZE
+    const moonSize = this._config.moon_size ?? DEFAULT_MOON_SIZE
+    const sunHeightPct = sunSize
+    const moonHeightPct = moonSize * (3000 / 1029)
 
     const sunPos = celestialPosition(
       sensors.sunAzimuth,
       sensors.sunElevation,
       sensors.azimuthRange,
       horizonY,
-      sensors.maxElevation
+      sensors.maxElevation,
+      sunHeightPct
     )
     const moonPos = celestialPosition(
       sensors.moonAzimuth,
       sensors.moonElevation,
       sensors.azimuthRange,
       horizonY,
-      sensors.maxElevation
+      sensors.maxElevation,
+      moonHeightPct
     )
     const moonUrl = moonImageUrl(images.moonPath, sensors.moonPhaseAngle)
-    const sunSize = this._config.sun_size ?? DEFAULT_SUN_SIZE
-    const moonSize = this._config.moon_size ?? DEFAULT_MOON_SIZE
 
     // Moon mask for stars layer: punch a moon-shaped hole in the stars using the
     // moon image's alpha channel so stars don't bleed through the moon disk.
