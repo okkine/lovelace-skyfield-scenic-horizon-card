@@ -221,7 +221,7 @@ export function celestialPosition(
   const horizonCssTop = 100 - horizonY
 
   // Use reduced effective max elevation to create global top headroom.
-  const effectiveMaxElevation = maxElevation * 0.9
+  const effectiveMaxElevation = maxElevation * 0.6
   const elevationRatio = clamp(elevation / effectiveMaxElevation, -10, 1)
 
   // Scale elevation linearly: 0° → horizonCssTop, effectiveMaxElevation → 0%.
