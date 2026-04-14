@@ -224,9 +224,14 @@ export function celestialPosition(
   // half the body's rendered height from the top edge.
   const topInset = Math.max(0, bodyHeightPct / 2)
 
-  // Scale elevation linearly: 0° → horizonCssTop, maxElevation → topInset.
+  // Leave a small top headroom so peak transit does not clip, and clamp the
+  // normalized ratio so brief sensor overshoot cannot push above topInset.
+  const effectiveMaxElevation = maxElevation * 0.95
+  const elevationRatio = clamp(elevation / effectiveMaxElevation, -10, 1)
+
+  // Scale elevation linearly: 0° → horizonCssTop, effectiveMaxElevation → topInset.
   // Negative elevation naturally places the body below the horizon.
-  const y = horizonCssTop - (elevation / maxElevation) * (horizonCssTop - topInset)
+  const y = horizonCssTop - elevationRatio * (horizonCssTop - topInset)
 
   return { x, y }
 }
