@@ -439,18 +439,26 @@ function calcSkyGradient(transitions) {
  * @param elevation    Body elevation in degrees (negative = below horizon)
  * @param range        Today's azimuth range (min = rise az, max = set az)
  * @param horizonY     % from bottom where 0° elevation falls (default 30)
- * @param maxElevation Peak elevation today — maps to top of card (default 60)
+ * @param maxElevation Peak elevation today — maps to top inset (default 60)
+ * @param bodyHeightPct Body height as % of card height (for top-edge kissing)
  */
-function celestialPosition(azimuth, elevation, range, horizonY = DEFAULT_HORIZON_Y, maxElevation = FALLBACK_MAX_ELEVATION) {
+function celestialPosition(azimuth, elevation, range, horizonY = DEFAULT_HORIZON_Y, maxElevation = FALLBACK_MAX_ELEVATION, bodyHeightPct = 0) {
     const span = range.max - range.min;
     const x = span > 0
         ? clamp(((azimuth - range.min) / span) * 100, -5, 105)
         : 50;
     // CSS top of the horizon line
     const horizonCssTop = 100 - horizonY;
-    // Scale elevation linearly: 0° → horizonCssTop, maxElevation → 0%
-    // Negative elevation → below horizon (cssTop > horizonCssTop)
-    const y = horizonCssTop * (1 - elevation / maxElevation);
+    // Keep transit at the top without clipping by mapping maxElevation to
+    // half the body's rendered height from the top edge.
+    const topInset = Math.max(0, bodyHeightPct / 2);
+    // Leave a small top headroom so peak transit does not clip, and clamp the
+    // normalized ratio so brief sensor overshoot cannot push above topInset.
+    const effectiveMaxElevation = maxElevation * 0.8;
+    const elevationRatio = clamp(elevation / effectiveMaxElevation, -10, 1);
+    // Scale elevation linearly: 0° → horizonCssTop, effectiveMaxElevation → topInset.
+    // Negative elevation naturally places the body below the horizon.
+    const y = horizonCssTop - elevationRatio * (horizonCssTop - topInset);
     return { x, y };
 }
 /**
@@ -615,16 +623,17 @@ let SkylineHorizonCard = class SkylineHorizonCard extends i$2 {
         const horizonY = this._config.horizon_y ?? 30;
         const images = this._images;
         const fgImage = this._activeForegroundImage;
-        const sunPos = celestialPosition(sensors.sunAzimuth, sensors.sunElevation, sensors.azimuthRange, horizonY, sensors.maxElevation);
-        const moonPos = celestialPosition(sensors.moonAzimuth, sensors.moonElevation, sensors.azimuthRange, horizonY, sensors.maxElevation);
-        const moonUrl = moonImageUrl(images.moonPath, sensors.moonPhaseAngle);
         const sunSize = this._config.sun_size ?? DEFAULT_SUN_SIZE;
         const moonSize = this._config.moon_size ?? DEFAULT_MOON_SIZE;
+        const cardAspect = 3000 / 1029;
+        const sunHeightPct = sunSize * cardAspect;
+        const moonHeightPct = moonSize * cardAspect;
+        const sunPos = celestialPosition(sensors.sunAzimuth, sensors.sunElevation, sensors.azimuthRange, horizonY, sensors.maxElevation, sunHeightPct);
+        const moonPos = celestialPosition(sensors.moonAzimuth, sensors.moonElevation, sensors.azimuthRange, horizonY, sensors.maxElevation, moonHeightPct);
+        const moonUrl = moonImageUrl(images.moonPath, sensors.moonPhaseAngle);
         // Moon mask for stars layer: punch a moon-shaped hole in the stars using the
         // moon image's alpha channel so stars don't bleed through the moon disk.
-        // The moon image is square (128×128); the card aspect ratio is 3000/1029 ≈ 2.916,
-        // so the rendered moon height as % of card height = moonSize × (3000/1029).
-        const moonHeightPct = moonSize * (3000 / 1029);
+        // Reuse moonHeightPct from above (already converted to card-height percent).
         const moonMaskPos = [
             `calc(${moonPos.x.toFixed(3)}% - ${(moonSize / 2).toFixed(3)}%)`,
             `calc(${moonPos.y.toFixed(3)}% - ${(moonHeightPct / 2).toFixed(3)}%)`,
