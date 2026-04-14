@@ -226,7 +226,7 @@ export function celestialPosition(
 
   // Leave a small top headroom so peak transit does not clip, and clamp the
   // normalized ratio so brief sensor overshoot cannot push above topInset.
-  const effectiveMaxElevation = maxElevation * 0.95
+  const effectiveMaxElevation = maxElevation * 0.8
   const elevationRatio = clamp(elevation / effectiveMaxElevation, -10, 1)
 
   // Scale elevation linearly: 0° → horizonCssTop, effectiveMaxElevation → topInset.
