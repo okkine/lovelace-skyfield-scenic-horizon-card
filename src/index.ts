@@ -218,9 +218,7 @@ export class SkylineHorizonCard extends LitElement {
 
     // Moon mask for stars layer: punch a moon-shaped hole in the stars using the
     // moon image's alpha channel so stars don't bleed through the moon disk.
-    // The moon image is square (128×128); the card aspect ratio is 3000/1029 ≈ 2.916,
-    // so the rendered moon height as % of card height = moonSize × (3000/1029).
-    const moonHeightPct = moonSize * (3000 / 1029)
+    // Reuse moonHeightPct from above (already converted to card-height percent).
     const moonMaskPos = [
       `calc(${moonPos.x.toFixed(3)}% - ${(moonSize / 2).toFixed(3)}%)`,
       `calc(${moonPos.y.toFixed(3)}% - ${(moonHeightPct / 2).toFixed(3)}%)`,
