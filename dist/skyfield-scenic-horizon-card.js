@@ -454,7 +454,7 @@ function celestialPosition(azimuth, elevation, range, horizonY = DEFAULT_HORIZON
     const topInset = Math.max(0, bodyHeightPct / 2);
     // Leave a small top headroom so peak transit does not clip, and clamp the
     // normalized ratio so brief sensor overshoot cannot push above topInset.
-    const effectiveMaxElevation = maxElevation * 0.8;
+    const effectiveMaxElevation = maxElevation * 1;
     const elevationRatio = clamp(elevation / effectiveMaxElevation, -10, 1);
     // Scale elevation linearly: 0° → horizonCssTop, effectiveMaxElevation → topInset.
     // Negative elevation naturally places the body below the horizon.
