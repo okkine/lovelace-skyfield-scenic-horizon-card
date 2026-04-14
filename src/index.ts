@@ -194,8 +194,9 @@ export class SkylineHorizonCard extends LitElement {
     const fgImage = this._activeForegroundImage
     const sunSize = this._config.sun_size ?? DEFAULT_SUN_SIZE
     const moonSize = this._config.moon_size ?? DEFAULT_MOON_SIZE
-    const sunHeightPct = sunSize
-    const moonHeightPct = moonSize * (3000 / 1029)
+    const cardAspect = 3000 / 1029
+    const sunHeightPct = sunSize * cardAspect
+    const moonHeightPct = moonSize * cardAspect
 
     const sunPos = celestialPosition(
       sensors.sunAzimuth,
