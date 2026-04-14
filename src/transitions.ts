@@ -210,7 +210,7 @@ export function celestialPosition(
   range: AzimuthRange,
   horizonY: number = DEFAULT_HORIZON_Y,
   maxElevation: number = FALLBACK_MAX_ELEVATION,
-  bodyHeightPct: number = 0
+  _bodyHeightPct: number = 0
 ): CelestialPosition {
   const span = range.max - range.min
   const x = span > 0
@@ -220,18 +220,13 @@ export function celestialPosition(
   // CSS top of the horizon line
   const horizonCssTop = 100 - horizonY
 
-  // Keep transit at the top without clipping by mapping maxElevation to
-  // half the body's rendered height from the top edge.
-  const topInset = Math.max(0, bodyHeightPct / 2)
-
-  // Leave a small top headroom so peak transit does not clip, and clamp the
-  // normalized ratio so brief sensor overshoot cannot push above topInset.
-  const effectiveMaxElevation = maxElevation * 1
+  // Use reduced effective max elevation to create global top headroom.
+  const effectiveMaxElevation = maxElevation * 0.9
   const elevationRatio = clamp(elevation / effectiveMaxElevation, -10, 1)
 
-  // Scale elevation linearly: 0° → horizonCssTop, effectiveMaxElevation → topInset.
+  // Scale elevation linearly: 0° → horizonCssTop, effectiveMaxElevation → 0%.
   // Negative elevation naturally places the body below the horizon.
-  const y = horizonCssTop - elevationRatio * (horizonCssTop - topInset)
+  const y = horizonCssTop - elevationRatio * horizonCssTop
 
   return { x, y }
 }
