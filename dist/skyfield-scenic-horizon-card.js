@@ -450,7 +450,7 @@ function celestialPosition(azimuth, elevation, range, horizonY = DEFAULT_HORIZON
     // CSS top of the horizon line
     const horizonCssTop = 100 - horizonY;
     // Use increased effective max elevation so peak transit renders below top edge.
-    const effectiveMaxElevation = maxElevation * 1.1;
+    const effectiveMaxElevation = maxElevation * 1.15;
     const elevationRatio = clamp(elevation / effectiveMaxElevation, -10, 1);
     // Scale elevation linearly: 0° → horizonCssTop, effectiveMaxElevation → 0%.
     // Negative elevation naturally places the body below the horizon.
